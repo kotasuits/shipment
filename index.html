@@ -515,7 +515,8 @@
                 }
 
                 if (!res.ok) throw new Error('Tracking records not found on GitHub or locally.');
-                allRecords = await res.json();
+                const text = await res.text();
+                allRecords = text.trim() ? JSON.parse(text) : [];
 
                 showState('init-st');
                 const q = document.getElementById('si').value.trim();
