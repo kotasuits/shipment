@@ -760,13 +760,19 @@
 
             // Normalize: strip spaces and non-digits, then get last 5 digits
             const cleanPhone = (phone || '').replace(/\D/g, '');
-            const last5 = cleanPhone.slice(-5);
+            const phoneLast5 = cleanPhone.slice(-5);
+            const cleanAwb = (awb || '').replace(/\W/g, '');
+            const awbLast5 = cleanAwb.slice(-5);
+            
+            // Primary lookup key is phone last 5. If missing, fallback to AWB last 5.
+            const lookupKey = phoneLast5 || awbLast5;
 
-            // Helper: check if a record's phone last-5 matches
-            function phoneLast5Match(recordPhone) {
-                if (!last5 || last5.length < 4) return false; // Prevent empty matching everything
-                const rClean = (recordPhone || '').replace(/\D/g, '');
-                return rClean.slice(-5) === last5;
+            // Helper: check if a record's phone or awb last-5 matches the lookupKey
+            function last5Match(recordPhone, recordAwb) {
+                if (!lookupKey || lookupKey.length < 4) return false; // Prevent empty matching everything
+                const rPhoneClean = (recordPhone || '').replace(/\D/g, '').slice(-5);
+                const rAwbClean = (recordAwb || '').replace(/\W/g, '').slice(-5);
+                return rPhoneClean === lookupKey || rAwbClean === lookupKey;
             }
 
             let foundRecord = null;
@@ -797,8 +803,8 @@
                 } catch(e) {}
             }
 
-            // Find matching GitHub record by last-5 phone digits
-            const ghMatch = githubRecords.find(r => phoneLast5Match(r.phone)) || null;
+            // Find matching GitHub record by last-5 phone or AWB digits
+            const ghMatch = githubRecords.find(r => last5Match(r.phone, r.awb)) || null;
 
             // Resolve AWB: prefer records.json match (most reliable source)
             const resolvedAwb = (ghMatch && ghMatch.awb) || awb || '';
@@ -806,8 +812,8 @@
             // Resolve photoUrl: prefer records.json, then localStorage, then images/ folder
             let resolvedPhoto = (ghMatch && ghMatch.photoUrl) || null;
 
-            // 1. If still no photo, scan GitHub images/ folder by last-5 in filename
-            if (!resolvedPhoto && cfg.token && cfg.repo && last5.length >= 4) {
+            // 1. If still no photo, scan GitHub images/ folder by lookupKey in filename
+            if (!resolvedPhoto && cfg.token && cfg.repo && lookupKey.length >= 4) {
                 try {
                     const imgRes = await fetch(
                         `https://api.github.com/repos/${cfg.repo}/contents/images?ref=${cfg.branch || 'main'}&t=${Date.now()}`,
@@ -815,10 +821,10 @@
                     );
                     if (imgRes.ok) {
                         const imgList = await imgRes.json();
-                        // Priority: filenames starting with last5_ (new format), then any containing last5
-                        const matches = imgList.filter(f => f.name.startsWith(last5 + '_') || f.name.includes('_' + last5 + '_'));
+                        // Priority: filenames starting with lookupKey_ (new format), then any containing lookupKey
+                        const matches = imgList.filter(f => f.name.startsWith(lookupKey + '_') || f.name.includes('_' + lookupKey + '_'));
                         matches.sort((a, b) => b.name.localeCompare(a.name)); // newest first
-                        const bestMatch = matches[0] || imgList.find(f => f.name.includes(last5));
+                        const bestMatch = matches[0] || imgList.find(f => f.name.includes(lookupKey));
                         if (bestMatch) {
                             resolvedPhoto = `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/images/${bestMatch.name}`;
                         }
