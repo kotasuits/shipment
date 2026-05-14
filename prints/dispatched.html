@@ -526,6 +526,8 @@
 
                 let dispAddress = row.address || row.Address || '';
                 let dispName = row.name || row.Name || '';
+                let dispPhone = row.phone || row.Phone || '';
+                let dispAwb = row.awb || row.AWB || '';
 
                 // Fallback: if address is empty, use name field (some old scans stored address there)
                 if (!dispAddress || dispAddress.trim() === '') {
@@ -549,11 +551,11 @@
 
                 const tr = document.createElement('tr');
                 tr.setAttribute('data-name', String(dispName).toLowerCase());
-                tr.setAttribute('data-phone', String(row.phone || '').toLowerCase());
+                tr.setAttribute('data-phone', String(dispPhone).toLowerCase());
 
                 // Store row data for the modal to look up later
                 const rowIdx = window._rowStore.length;
-                window._rowStore.push({ phone: row.phone || '', timestamp: row.timestamp || '', awb: row.awb || '' });
+                window._rowStore.push({ phone: dispPhone, timestamp: row.timestamp || '', awb: dispAwb });
 
                 tr.innerHTML = `
                     <td class="td-time">${displayDate}</td>
@@ -752,6 +754,7 @@
 
             // Helper: check if a record's phone last-5 matches
             function phoneLast5Match(recordPhone) {
+                if (!last5 || last5.length < 4) return false; // Prevent empty matching everything
                 const rClean = (recordPhone || '').replace(/\D/g, '');
                 return rClean.slice(-5) === last5;
             }
@@ -806,7 +809,7 @@
             }
 
             // 2. If still no photo, scan GitHub images/ folder by last-5 in filename
-            if (!resolvedPhoto && cfg.token && cfg.repo) {
+            if (!resolvedPhoto && cfg.token && cfg.repo && last5.length >= 4) {
                 try {
                     const imgRes = await fetch(
                         `https://api.github.com/repos/${cfg.repo}/contents/images?ref=${cfg.branch || 'main'}&t=${Date.now()}`,
