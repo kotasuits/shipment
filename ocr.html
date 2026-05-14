@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚡ Instant OCR</title>
+  <title>⚡ Instant Photo OCR</title>
   <style>
     body { font-family: Arial, sans-serif; background:#111; color:#eee; margin:0; padding:20px; }
     .container { max-width: 900px; margin:auto; background:#1f1f1f; padding:25px; border-radius:12px; }
@@ -12,17 +12,14 @@
     button { padding:14px 28px; font-size:17px; border:none; border-radius:8px; cursor:pointer; margin:10px; }
     #ocrBtn { background:#4CAF50; color:white; }
     textarea { width:100%; height:320px; background:#000; color:#0f0; padding:15px; font-size:16px; border-radius:8px; }
-    input { padding:10px; width:80%; margin:10px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>⚡ Instant Photo OCR</h1>
+    <p>Your API Key is set</p>
 
-    <input type="text" id="apiKey" placeholder="Enter your free OCR.space API Key" style="display:block;">
-    <small>Get free key from: <a href="https://ocr.space/ocrapi" target="_blank" style="color:#4CAF50">https://ocr.space/ocrapi</a></small>
-
-    <div id="dropZone">Drop image here or click to upload</div>
+    <div id="dropZone">📸 Drop image here or click to upload</div>
     <input type="file" id="fileInput" accept="image/*" style="display:none;">
 
     <img id="preview" alt="Preview">
@@ -30,16 +27,14 @@
     <button id="ocrBtn" disabled>🚀 Extract Text Instantly</button>
 
     <div id="status"></div>
-    <textarea id="result"></textarea>
+    <textarea id="result" placeholder="Extracted text will appear here..."></textarea>
     <button id="copyBtn" style="display:none;">📋 Copy Text</button>
   </div>
 
   <script>
-    let currentBase64 = null;
-    const apiKeyInput = document.getElementById('apiKey');
+    const API_KEY = "K89407475788957";   // Your key is already set
 
-    // Auto-fill if you have saved key
-    if (localStorage.getItem('ocrKey')) apiKeyInput.value = localStorage.getItem('ocrKey');
+    let currentBase64 = null;
 
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -52,8 +47,9 @@
     dropZone.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
 
-    // Drag & Drop
+    // Drag & Drop Support
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = '#fff'; });
+    dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '#4CAF50');
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.style.borderColor = '#4CAF50';
@@ -67,46 +63,42 @@
         preview.src = ev.target.result;
         currentBase64 = ev.target.result.split(',')[1];
         ocrBtn.disabled = false;
+        status.textContent = "";
       };
       reader.readAsDataURL(file);
     }
 
     ocrBtn.addEventListener('click', async () => {
-      const key = apiKeyInput.value.trim();
-      if (!key) {
-        status.textContent = "❌ Please enter your OCR.space API Key";
-        return;
-      }
-      localStorage.setItem('ocrKey', key);
+      if (!currentBase64) return;
 
-      status.textContent = "Processing...";
+      status.textContent = "Processing image...";
       ocrBtn.disabled = true;
 
       try {
         const form = new FormData();
         form.append('base64Image', currentBase64);
-        form.append('language', 'eng');
+        form.append('language', 'eng');           // Change to eng+hin if needed
         form.append('OCREngine', '2');
         form.append('isOverlayRequired', 'false');
         form.append('scale', 'true');
 
         const res = await fetch('https://api.ocr.space/parse/image', {
           method: 'POST',
-          headers: { 'apikey': key },
+          headers: { 'apikey': API_KEY },
           body: form
         });
 
         const data = await res.json();
 
         if (data.IsErroredOnProcessing) {
-          resultArea.value = "Error: " + (data.ErrorMessage || data.ErrorDetails);
+          resultArea.value = "❌ Error: " + (data.ErrorMessage || "Unknown error");
         } else {
-          resultArea.value = data.ParsedResults[0].ParsedText || "No text found.";
+          resultArea.value = data.ParsedResults[0].ParsedText.trim() || "No text found.";
         }
         copyBtn.style.display = 'inline-block';
-        status.textContent = "✅ Done!";
+        status.textContent = "✅ Extraction Complete!";
       } catch (err) {
-        status.textContent = "❌ Failed. Check API key or internet.";
+        status.textContent = "❌ Request failed. Check internet connection.";
       } finally {
         ocrBtn.disabled = false;
       }
