@@ -347,8 +347,8 @@
 
         .tracking-photo {
             width: 100%;
-            height: 250px;
-            object-fit: cover;
+            min-height: 150px;
+            max-height: 60vh;
             border-radius: 16px;
             margin-bottom: 20px;
             border: 1px solid var(--border);
@@ -358,6 +358,7 @@
             justify-content: center;
             color: var(--text-muted);
             font-size: 0.9rem;
+            overflow: hidden;
         }
 
         .tracking-status-title {
@@ -805,19 +806,7 @@
             // Resolve photoUrl: prefer records.json, then localStorage, then images/ folder
             let resolvedPhoto = (ghMatch && ghMatch.photoUrl) || null;
 
-            // 1. Check localStorage trackingData as fallback for photo
-            if (!resolvedPhoto) {
-                try {
-                    const allTracking = JSON.parse(localStorage.getItem('trackingData') || '{}');
-                    const matchedKey = Object.keys(allTracking).find(k => k.replace(/\D/g, '').slice(-5) === last5);
-                    if (matchedKey) {
-                        const t = allTracking[matchedKey];
-                        resolvedPhoto = t.photo || t.photoUrl || null;
-                    }
-                } catch(e) {}
-            }
-
-            // 2. If still no photo, scan GitHub images/ folder by last-5 in filename
+            // 1. If still no photo, scan GitHub images/ folder by last-5 in filename
             if (!resolvedPhoto && cfg.token && cfg.repo && last5.length >= 4) {
                 try {
                     const imgRes = await fetch(
@@ -848,7 +837,7 @@
             // 3. Render result
             if (foundRecord && (foundRecord.photoUrl || foundRecord.photo)) {
                 const photoUrl = foundRecord.photoUrl || foundRecord.photo;
-                photoContainer.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" onclick="window.open('${photoUrl}','_blank')" onerror="this.parentElement.innerHTML='<span>⚠️ Photo could not load.<br><small>Check GitHub repository.</small></span>'">`;
+                photoContainer.innerHTML = `<img src="${photoUrl}" style="width:100%;max-height:60vh;object-fit:contain;border-radius:12px;" onclick="window.open('${photoUrl}','_blank')" onerror="this.parentElement.innerHTML='<span>⚠️ Photo could not load.<br><small>Check GitHub repository.</small></span>'">`;
 
                 // Show timeline update if available
                 const timeline = document.getElementById('tracking-timeline');
