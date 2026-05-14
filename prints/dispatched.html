@@ -808,11 +808,15 @@
                         );
                         if (imgRes.ok) {
                             const imgList = await imgRes.json();
-                            // Find an image file whose name contains the last 5 digits
-                            const match = imgList.find(f => f.name.includes(last5));
-                            if (match) {
+                            // Filter image files whose name STARTS with last5 (new naming: ph5_timestamp_name.jpg)
+                            // Also accept filenames that contain last5 anywhere (older format)
+                            const matches = imgList.filter(f => f.name.startsWith(last5 + '_') || f.name.includes('_' + last5 + '_'));
+                            // Pick the most recent one: sort by filename descending (timestamps are embedded)
+                            matches.sort((a, b) => b.name.localeCompare(a.name));
+                            const bestMatch = matches[0] || imgList.find(f => f.name.includes(last5));
+                            if (bestMatch) {
                                 foundRecord = {
-                                    photoUrl: `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/images/${match.name}`,
+                                    photoUrl: `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/images/${bestMatch.name}`,
                                     awb: awb || '',
                                     uploadedAt: null
                                 };
@@ -848,13 +852,28 @@
                     `;
                 }
 
-                // Show live track button if AWB exists
+                // Show live track section if AWB exists
                 const trackAwb = awb || foundRecord.awb || '';
                 if (liveWrap) {
                     if (trackAwb) {
-                        liveWrap.innerHTML = `<a href="../livestatus.html?awb=${encodeURIComponent(trackAwb)}" target="_blank" style="display:block;text-align:center;padding:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border-radius:12px;font-weight:600;text-decoration:none;">🚚 Live Track: ${trackAwb}</a>`;
+                        liveWrap.innerHTML = `
+                            <div style="margin-top:8px;">
+                                <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;margin-bottom:8px;">🚚 Live Tracking: <strong style="color:#c084fc">${trackAwb}</strong></div>
+                                <div id="YQContainer-modal" style="width:100%;min-height:500px;border-radius:12px;overflow:hidden;background:white;"></div>
+                            </div>
+                        `;
+                        // Load the 17track script if not already present
+                        if (!document.getElementById('yq17script')) {
+                            const s = document.createElement('script');
+                            s.id = 'yq17script';
+                            s.src = 'https://www.17track.net/externalcall.js';
+                            s.onload = () => initYQModal(trackAwb);
+                            document.head.appendChild(s);
+                        } else {
+                            setTimeout(() => initYQModal(trackAwb), 200);
+                        }
                     } else {
-                        liveWrap.innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">No AWB number linked. Add it via <a href="../uploads.html" target="_blank" style="color:#60a5fa;">Upload Tracking</a>.</p>`;
+                        liveWrap.innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">No AWB linked. Add via <a href="../uploads.html" target="_blank" style="color:#60a5fa;">Upload Tracking</a>.</p>`;
                     }
                 }
             } else {
@@ -869,9 +888,45 @@
                 // Still show live track if AWB is known
                 const trackAwb = awb || '';
                 if (liveWrap && trackAwb) {
-                    liveWrap.innerHTML = `<a href="../livestatus.html?awb=${encodeURIComponent(trackAwb)}" target="_blank" style="display:block;text-align:center;padding:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border-radius:12px;font-weight:600;text-decoration:none;">🚚 Live Track: ${trackAwb}</a>`;
+                    liveWrap.innerHTML = `
+                        <div style="margin-top:8px;">
+                            <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;margin-bottom:8px;">🚚 Live Tracking: <strong style="color:#c084fc">${trackAwb}</strong></div>
+                            <div id="YQContainer-modal" style="width:100%;min-height:500px;border-radius:12px;overflow:hidden;background:white;"></div>
+                        </div>
+                    `;
+                    if (!document.getElementById('yq17script')) {
+                        const s = document.createElement('script');
+                        s.id = 'yq17script';
+                        s.src = 'https://www.17track.net/externalcall.js';
+                        s.onload = () => initYQModal(trackAwb);
+                        document.head.appendChild(s);
+                    } else {
+                        setTimeout(() => initYQModal(trackAwb), 200);
+                    }
                 }
             }
+        }
+
+        function initYQModal(awbNum) {
+            function tryInit() {
+                const container = document.getElementById('YQContainer-modal');
+                if (!container) return;
+                if (typeof YQV5 === 'undefined') { setTimeout(tryInit, 400); return; }
+                const num = awbNum.toUpperCase().trim();
+                let carrierCode = '0'; // auto-detect
+                if (num.startsWith('D') || num.startsWith('W')) carrierCode = '100069'; // DTDC
+                if (num.startsWith('356') || num.startsWith('19')) carrierCode = '100060'; // Delhivery
+                if (num.startsWith('5006') || num.startsWith('1003')) carrierCode = '100180'; // Trackon
+                container.innerHTML = '';
+                YQV5.trackSingle({
+                    YQ_ContainerId: 'YQContainer-modal',
+                    YQ_Height: 500,
+                    YQ_Lang: 'en',
+                    YQ_Num: awbNum,
+                    YQ_Fc: carrierCode
+                });
+            }
+            tryInit();
         }
 
         // CSS for the spinner inside modal
