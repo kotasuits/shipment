@@ -956,7 +956,7 @@
             for (let p of pending) {
                 const item = document.createElement('div');
                 item.className = 'up-item going';
-                item.innerHTML = `<span class="up-icon"></span><span class="up-name">${p.name} — ${p.file?.name || 'photo'}</span><span style="color:var(--muted);font-size:.8rem;">Uploading…</span>`;
+                item.innerHTML = `<span class="up-icon"></span><span class="up-name">${p.name} — ${p.file?.name || 'photo'}</span><span style="color:var(--muted);font-size:.8rem;">Saving…</span>`;
                 log.appendChild(item);
                 try {
                     const ts = new Date().toISOString();
