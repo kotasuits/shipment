@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -247,7 +246,7 @@
         /* Preview grid */
         #pgrid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 16px;
             margin-top: 20px;
         }
@@ -268,7 +267,7 @@
 
         .pc img {
             width: 100%;
-            height: 150px;
+            height: 350px;
             object-fit: contain;
             background: #000;
             display: block;
@@ -630,8 +629,8 @@
 
         @media(max-width:580px) {
             #pgrid {
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
+                grid-template-columns: 1fr;
+                gap: 12px;
             }
 
             .abar {
@@ -650,7 +649,7 @@
             }
 
             .pc img {
-                height: 120px;
+                height: 350px;
                 object-fit: contain;
                 background: #000;
             }
@@ -896,23 +895,6 @@
                         }
 
                         if (!detected) pObj.status = '⚠️ No codes found';
-                        
-                        // 3. OCR (Optical Character Recognition) for Name, Phone, Pincode
-                        if (!pObj.name || !pObj.phone || !pObj.pincode) {
-                            const currentStatus = pObj.status;
-                            pObj.status = '⌛ Reading text...';
-                            renderGrid();
-                            try {
-                                const { data: { text: ocrText } } = await Tesseract.recognize(cvs, 'eng');
-                                if (ocrText) {
-                                    processOCRText(ocrText, pObj);
-                                    pObj.status = detected ? currentStatus : '✅ Text Read';
-                                }
-                            } catch (e) { 
-                                console.error("OCR Error:", e); 
-                                pObj.status = detected ? currentStatus : '❌ OCR Error'; 
-                            }
-                        }
                         renderGrid();
                     };
                     img.src = dataUrl;
@@ -942,55 +924,6 @@
                 if (pinMatch) n = n.replace(pinMatch[0], '');
                 n = n.replace(/[|\-_:;]+/g, ' ').trim();
                 if (n && n.length > 2 && n.length < 30 && !pObj.name) pObj.name = n;
-            }
-            syncDOM(pObj);
-        }
-
-        function processOCRText(text, pObj) {
-            if (!text) return;
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-            
-            const phRegex = /(?:(?:\+|00)?91[\s-]?)?(?:[6-9]\d{9}|[6-9]\d{4}[\s-]\d{5})/g;
-            const phs = text.match(phRegex);
-            if (phs && !pObj.phone) pObj.phone = phs[0].replace(/\D/g, '').slice(-10);
-
-            const pinRegex = /\b\d{6}\b/g;
-            const pins = text.match(pinRegex);
-            if (pins && !pObj.pincode) pObj.pincode = pins[pins.length - 1];
-
-            if (!pObj.awb) {
-                const awbKeywords = ['AWB', 'TRACKING', 'ID', 'NO', 'NUMBER'];
-                for (let line of lines) {
-                    const upper = line.toUpperCase();
-                    if (awbKeywords.some(k => upper.includes(k))) {
-                        const m = line.match(/\b[A-Z0-9]{8,20}\b/);
-                        if (m) { pObj.awb = m[0]; break; }
-                    }
-                }
-            }
-
-            if (!pObj.name) {
-                const nameKeywords = ['TO:', 'NAME:', 'CONSIGNEE:', 'CUSTOMER:', 'SHIP TO:', 'SHIPPER:'];
-                for (let i = 0; i < lines.length; i++) {
-                    const upper = lines[i].toUpperCase();
-                    let foundName = '';
-                    if (nameKeywords.some(k => upper.includes(k))) {
-                        foundName = lines[i].replace(/.*(TO|NAME|CONSIGNEE|CUSTOMER|SHIP TO|SHIPPER):/i, '').trim();
-                        if (foundName.length < 3 && i + 1 < lines.length) foundName = lines[i+1].trim();
-                    }
-                    if (foundName && foundName.length > 2 && !/\d{5,}/.test(foundName)) {
-                        pObj.name = foundName.replace(/[^a-zA-Z\s]/g, '').trim();
-                        break;
-                    }
-                }
-                if (!pObj.name) {
-                    for (let line of lines) {
-                        if (line.length > 3 && line.length < 25 && /^[A-Za-z\s]+$/.test(line) && line.includes(' ')) {
-                            pObj.name = line.trim();
-                            break;
-                        }
-                    }
-                }
             }
             syncDOM(pObj);
         }
