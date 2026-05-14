@@ -204,31 +204,33 @@
             }
         }
 
-        .nav-links {
+        nav {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 26px;
             width: 100%;
             max-width: 1000px;
-            justify-content: center;
-            margin-bottom: 25px;
         }
 
-        .nav-links a {
-            color: #3b82f6;
+        nav a {
+            color: #60a5fa;
             text-decoration: none;
             font-weight: 600;
-            padding: 8px 16px;
-            border: 2px solid rgba(59, 130, 246, 0.5);
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
+            padding: 7px 16px;
+            border: 1.5px solid rgba(59, 130, 246, .4);
+            border-radius: 8px;
+            background: rgba(59, 130, 246, .08);
+            transition: all .2s;
+            font-size: .88rem;
         }
 
-        .nav-links a:hover {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
+        nav a:hover,
+        nav a.on {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
         }
 
         @media(max-width: 600px) {
@@ -246,14 +248,10 @@
                 padding: 10px 8px;
                 font-size: 0.8rem;
             }
-            .nav-links {
-                gap: 10px;
-                padding: 0 5px;
-            }
-            .nav-links a {
-                padding: 6px 10px;
-                font-size: 0.75rem;
-                flex: 1 1 calc(33.33% - 10px);
+            nav a {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                flex: 1 1 calc(50% - 10px);
                 text-align: center;
             }
         }
@@ -452,26 +450,20 @@
 </head>
 
 <body>
+    <nav>
+        <a href="index.html">📄 Labels</a>
+        <a href="scanner.html">🔍 Scanner</a>
+        <a href="dispatched.html" class="on">📋 Dispatched</a>
+        <a href="../uploads.html">📸 Upload Tracking</a>
+        <a href="../search.html">🔎 Search Photos</a>
+    </nav>
 
     <div class="header">
         <div class="header-title">
             <h1>Dispatched Items</h1>
             <p>Live data synced directly from Google Sheets.</p>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-            <button class="refresh-btn" onclick="fetchData()"><span>↻</span> Refresh</button>
-            <button class="refresh-btn"
-                style="background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.4);"
-                onclick="localStorage.removeItem('dispatchedCache');fetchData();">🗑 Clear Cache</button>
-        </div>
-    </div>
-
-    <div class="nav-links">
-        <a href="index.html">📄 Labels</a>
-        <a href="scanner.html">🔍 Scanner</a>
-        <a href="dispatched.html" style="background:#3b82f6;color:white;border-color:#3b82f6;">📋 Dispatched</a>
-        <a href="../uploads.html">📸 Upload Tracking</a>
-        <a href="../search.html">🔎 Search Photos</a>
+        <h1>Dispatch Scanner</h1>
+        <p>Scan address label QR codes to save them directly to Google Sheets.</p>
     </div>
 
     <div class="glass-card">
