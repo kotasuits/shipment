@@ -462,8 +462,13 @@
         <div class="header-title">
             <h1>Dispatched Items</h1>
             <p>Live data synced directly from Google Sheets.</p>
-        <h1>Dispatch Scanner</h1>
-        <p>Scan address label QR codes to save them directly to Google Sheets.</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <button class="refresh-btn" onclick="fetchData()"><span>↻</span> Refresh</button>
+            <button class="refresh-btn"
+                style="background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.4);"
+                onclick="localStorage.removeItem('dispatchedCache');fetchData();">🗑 Clear Cache</button>
+        </div>
     </div>
 
     <div class="glass-card">
