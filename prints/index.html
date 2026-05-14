@@ -82,11 +82,13 @@
       gap: 7px;
     }
 
-    nav a:hover {
+    nav a:hover,
+    nav a.on {
       background: rgba(59, 130, 246, 0.3);
       border-color: rgba(59, 130, 246, 0.7);
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
+      color: white;
     }
 
     .toolbar {
@@ -374,7 +376,7 @@
   </header>
 
   <nav>
-    <a href="index.html" style="background:rgba(59,130,246,0.3);border-color:rgba(59,130,246,0.7);color:white;box-shadow:0 6px 20px rgba(59,130,246,0.25);">📄 Labels</a>
+    <a href="index.html" class="on">📄 Labels</a>
     <a href="scanner.html">🔍 Scanner</a>
     <a href="dispatched.html">📋 Dispatched</a>
     <a href="../uploads.html">📸 Upload Tracking</a>
