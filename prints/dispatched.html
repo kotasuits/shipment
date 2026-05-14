@@ -231,6 +231,33 @@
             border-color: #3b82f6;
         }
 
+        @media(max-width: 600px) {
+            body {
+                padding: 20px 15px;
+            }
+            .header-title h1 {
+                font-size: 1.8rem;
+            }
+            .glass-card {
+                padding: 10px;
+                border-radius: 12px;
+            }
+            th, td {
+                padding: 10px 8px;
+                font-size: 0.8rem;
+            }
+            .nav-links {
+                gap: 10px;
+                padding: 0 5px;
+            }
+            .nav-links a {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+                flex: 1 1 calc(33.33% - 10px);
+                text-align: center;
+            }
+        }
+
         /* Setup warning */
         .setup-warning {
             background: rgba(239, 68, 68, 0.1);
