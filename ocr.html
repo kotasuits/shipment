@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo OCR - Extract Text from Image</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f4f4f4;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; }
+    #preview {
+      max-width: 100%;
+      max-height: 400px;
+      margin: 15px 0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+    }
+    button {
+      padding: 12px 25px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+    }
+    #uploadBtn { background: #007bff; color: white; }
+    #ocrBtn { background: #28a745; color: white; }
+    #copyBtn { background: #6c757d; color: white; }
+    .progress { margin: 15px 0; color: #555; }
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin-top: 10px;
+      padding: 10px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📸 Photo OCR</h1>
+    <p>Upload an image and extract text using Tesseract.js</p>
+
+    <input type="file" id="imageInput" accept="image/*" style="display:none;">
+    <button id="uploadBtn">Choose Photo</button>
+    
+    <div id="previewContainer">
+      <img id="preview" alt="Preview">
+    </div>
+
+    <button id="ocrBtn" disabled>🔍 Extract Text</button>
+    
+    <div class="progress" id="progress"></div>
+
+    <textarea id="result" placeholder="Extracted text will appear here..."></textarea>
+    
+    <button id="copyBtn" style="display:none;">📋 Copy Text</button>
+  </div>
+
+  <script>
+    let currentImage = null;
+
+    const imageInput = document.getElementById('imageInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const ocrBtn = document.getElementById('ocrBtn');
+    const preview = document.getElementById('preview');
+    const resultText = document.getElementById('result');
+    const progress = document.getElementById('progress');
+    const copyBtn = document.getElementById('copyBtn');
+
+    uploadBtn.addEventListener('click', () => imageInput.click());
+
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        currentImage = file;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          preview.src = event.target.result;
+          ocrBtn.disabled = false;
+          resultText.value = '';
+          copyBtn.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    ocrBtn.addEventListener('click', async () => {
+      if (!currentImage) return;
+
+      progress.textContent = "Loading OCR engine... Please wait (first time may take 10-20 seconds)";
+      ocrBtn.disabled = true;
+
+      try {
+        const worker = await Tesseract.createWorker({
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              progress.textContent = `Recognizing text... ${Math.round(m.progress * 100)}%`;
+            }
+          }
+        });
+
+        await worker.loadLanguage('eng');
+        await worker.initialize('eng');
+
+        const { data: { text } } = await worker.recognize(currentImage);
+        
+        resultText.value = text.trim() || "No text found in the image.";
+        copyBtn.style.display = 'inline-block';
+        progress.textContent = "✅ Done!";
+
+        await worker.terminate();
+      } catch (error) {
+        progress.textContent = "❌ Error: " + error.message;
+        console.error(error);
+      } finally {
+        ocrBtn.disabled = false;
+      }
+    });
+
+    copyBtn.addEventListener('click', () => {
+      resultText.select();
+      document.execCommand('copy');
+      copyBtn.textContent = '✅ Copied!';
+      setTimeout(() => copyBtn.textContent = '📋 Copy Text', 2000);
+    });
+  </script>
+</body>
+</html>
