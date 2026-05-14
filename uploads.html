@@ -859,8 +859,8 @@
             if (!text) return;
             text = text.trim();
 
-            // Match phone: 10 consecutive digits OR 5 digits + space + 5 digits
-            let phMatch = text.match(/\b(\d{5}\s\d{5}|\d{10})\b/);
+            // Match phone: optional +91/0, optional spaces/hyphens, then 10 digits (with optional middle space/hyphen)
+            let phMatch = text.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b(\d{5}[\s-]?\d{5}|\d{10})\b/);
             // Match 6-digit pincode (won't overlap with phone digits)
             let pinMatch = text.match(/\b(\d{6})\b/);
 
@@ -875,9 +875,9 @@
             }
 
             // Any code that doesn't contain only phone/pin digits is treated as AWB/Barcode
-            // E.g. a barcode scanner sends a standalone tracking number like D12345678
             const digitsOnly = text.replace(/\D/g, '');
-            const isOnlyPhone = phMatch && text.replace(/\s/g, '') === digitsOnly && digitsOnly.length === 10;
+            // Check if the text is EXCLUSIVELY the phone number (ignoring +91, spaces)
+            const isOnlyPhone = phMatch && text.replace(/(?:\+|00)?91|\D/g, '') === digitsOnly && (digitsOnly.length === 10 || digitsOnly.length === 12);
             const isOnlyPin = pinMatch && digitsOnly.length === 6;
 
             if (!isOnlyPhone && !isOnlyPin && text.length > 4 && !pObj.awb) {
@@ -940,11 +940,15 @@
                 p.awb = (document.getElementById(`a-${p.id}`)?.value || '').trim();
 
                 ['n', 'p', 'ph', 'a'].forEach(pre => document.getElementById(`${pre}-${p.id}`)?.classList.remove('err'));
-                if (!p.name) { document.getElementById(`n-${p.id}`)?.classList.add('err'); ok = false; }
-                if (!p.pincode) { document.getElementById(`p-${p.id}`)?.classList.add('err'); ok = false; }
-                if (!p.phone) { document.getElementById(`ph-${p.id}`)?.classList.add('err'); ok = false; }
+                
+                // Relaxed validation: Need AT LEAST a Phone OR an AWB. Name and Pincode are optional now.
+                if (!p.phone && !p.awb) { 
+                    document.getElementById(`ph-${p.id}`)?.classList.add('err'); 
+                    document.getElementById(`a-${p.id}`)?.classList.add('err'); 
+                    ok = false; 
+                }
             });
-            if (!ok) { toast('Fill all Name, Pincode & Phone fields', 'er'); return; }
+            if (!ok) { toast('Need at least a Phone Number or AWB to link the photo', 'er'); return; }
             if (!cfg.token || !cfg.repo) { toast('Save GitHub config first!', 'er'); return; }
 
             const btn = document.getElementById('ubtn');
@@ -960,11 +964,14 @@
                 log.appendChild(item);
                 try {
                     const ts = new Date().toISOString();
-                    // Include last-5 digits of phone in filename for easy lookup
+                    // Use last-5 digits of Phone OR AWB for filename linking
                     const cleanPh = (p.phone || '').replace(/\D/g, '');
-                    const ph5 = cleanPh.slice(-5) || 'xxxxx';
+                    const ph5 = cleanPh.slice(-5);
+                    const cleanAwb = (p.awb || '').replace(/\W/g, '');
+                    const awb5 = cleanAwb.slice(-5);
+                    const prefixId = ph5 || awb5 || 'xxxxx';
                     const safeName = (p.name || 'unknown').replace(/\s+/g, '_').slice(0, 15);
-                    const fname = `${ph5}_${Date.now()}_${safeName}.jpg`;
+                    const fname = `${prefixId}_${Date.now()}_${safeName}.jpg`;
                     const url = await uploadImage(fname, p.dataUrl);
                     const rec = { id: p.id, name: p.name, pincode: p.pincode, phone: p.phone, awb: p.awb, photoUrl: url, photoPath: `images/${fname}`, uploadedAt: ts };
                     newRecords.push(rec);
