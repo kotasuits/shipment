@@ -758,73 +758,80 @@
 
             let foundRecord = null;
 
-            // 1. Check localStorage trackingData (last-5 match)
-            try {
-                const allTracking = JSON.parse(localStorage.getItem('trackingData') || '{}');
-                const matchedKey = Object.keys(allTracking).find(k => k.replace(/\D/g, '').slice(-5) === last5);
-                if (matchedKey) {
-                    const t = allTracking[matchedKey];
-                    foundRecord = { photoUrl: t.photo || t.photoUrl, awb: awb || t.awb, uploadedAt: t.updateTime, ...t };
-                }
-            } catch(e) {}
+            // Always fetch GitHub records.json first to get AWB + photoUrl
+            const cfg = JSON.parse(localStorage.getItem('ghTrackCfg') || '{}');
+            let githubRecords = [];
 
-            // 2. Fetch from GitHub records.json (last-5 match)
-            if (!foundRecord) {
-                const cfg = JSON.parse(localStorage.getItem('ghTrackCfg') || '{}');
-                let records = [];
-
-                if (cfg.token && cfg.repo) {
-                    try {
-                        const res = await fetch(
-                            `https://api.github.com/repos/${cfg.repo}/contents/records.json?ref=${cfg.branch || 'main'}&t=${Date.now()}`,
-                            { headers: { 'Authorization': 'token ' + cfg.token, 'Accept': 'application/vnd.github.v3+json' } }
-                        );
-                        if (res.ok) {
-                            const d = await res.json();
-                            const decoded = atob(d.content.replace(/\n/g, ''));
-                            records = decoded.trim() ? JSON.parse(decoded) : [];
-                        }
-                    } catch(e) { console.error('GitHub records.json fetch error:', e); }
-                } else if (cfg.repo) {
-                    // Public repo fallback
-                    try {
-                        const res = await fetch(`https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/records.json?t=${Date.now()}`);
-                        if (res.ok) {
-                            const text = await res.text();
-                            records = text.trim() ? JSON.parse(text) : [];
-                        }
-                    } catch(e) {}
-                }
-
-                // Match by last 5 digits
-                foundRecord = records.find(r => phoneLast5Match(r.phone)) || null;
-
-                // 3. If still no record, try listing GitHub images/ folder and match filename by last 5 digits
-                if (!foundRecord && cfg.token && cfg.repo) {
-                    try {
-                        const imgRes = await fetch(
-                            `https://api.github.com/repos/${cfg.repo}/contents/images?ref=${cfg.branch || 'main'}&t=${Date.now()}`,
-                            { headers: { 'Authorization': 'token ' + cfg.token, 'Accept': 'application/vnd.github.v3+json' } }
-                        );
-                        if (imgRes.ok) {
-                            const imgList = await imgRes.json();
-                            // Filter image files whose name STARTS with last5 (new naming: ph5_timestamp_name.jpg)
-                            // Also accept filenames that contain last5 anywhere (older format)
-                            const matches = imgList.filter(f => f.name.startsWith(last5 + '_') || f.name.includes('_' + last5 + '_'));
-                            // Pick the most recent one: sort by filename descending (timestamps are embedded)
-                            matches.sort((a, b) => b.name.localeCompare(a.name));
-                            const bestMatch = matches[0] || imgList.find(f => f.name.includes(last5));
-                            if (bestMatch) {
-                                foundRecord = {
-                                    photoUrl: `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/images/${bestMatch.name}`,
-                                    awb: awb || '',
-                                    uploadedAt: null
-                                };
-                            }
-                        }
-                    } catch(e) { console.error('GitHub images/ folder fetch error:', e); }
-                }
+            if (cfg.token && cfg.repo) {
+                try {
+                    const res = await fetch(
+                        `https://api.github.com/repos/${cfg.repo}/contents/records.json?ref=${cfg.branch || 'main'}&t=${Date.now()}`,
+                        { headers: { 'Authorization': 'token ' + cfg.token, 'Accept': 'application/vnd.github.v3+json' } }
+                    );
+                    if (res.ok) {
+                        const d = await res.json();
+                        const decoded = atob(d.content.replace(/\n/g, ''));
+                        githubRecords = decoded.trim() ? JSON.parse(decoded) : [];
+                    }
+                } catch(e) { console.error('GitHub records.json fetch error:', e); }
+            } else if (cfg.repo) {
+                try {
+                    const res = await fetch(`https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/records.json?t=${Date.now()}`);
+                    if (res.ok) {
+                        const text = await res.text();
+                        githubRecords = text.trim() ? JSON.parse(text) : [];
+                    }
+                } catch(e) {}
             }
+
+            // Find matching GitHub record by last-5 phone digits
+            const ghMatch = githubRecords.find(r => phoneLast5Match(r.phone)) || null;
+
+            // Resolve AWB: prefer records.json match (most reliable source)
+            const resolvedAwb = (ghMatch && ghMatch.awb) || awb || '';
+
+            // Resolve photoUrl: prefer records.json, then localStorage, then images/ folder
+            let resolvedPhoto = (ghMatch && ghMatch.photoUrl) || null;
+
+            // 1. Check localStorage trackingData as fallback for photo
+            if (!resolvedPhoto) {
+                try {
+                    const allTracking = JSON.parse(localStorage.getItem('trackingData') || '{}');
+                    const matchedKey = Object.keys(allTracking).find(k => k.replace(/\D/g, '').slice(-5) === last5);
+                    if (matchedKey) {
+                        const t = allTracking[matchedKey];
+                        resolvedPhoto = t.photo || t.photoUrl || null;
+                    }
+                } catch(e) {}
+            }
+
+            // 2. If still no photo, scan GitHub images/ folder by last-5 in filename
+            if (!resolvedPhoto && cfg.token && cfg.repo) {
+                try {
+                    const imgRes = await fetch(
+                        `https://api.github.com/repos/${cfg.repo}/contents/images?ref=${cfg.branch || 'main'}&t=${Date.now()}`,
+                        { headers: { 'Authorization': 'token ' + cfg.token, 'Accept': 'application/vnd.github.v3+json' } }
+                    );
+                    if (imgRes.ok) {
+                        const imgList = await imgRes.json();
+                        // Priority: filenames starting with last5_ (new format), then any containing last5
+                        const matches = imgList.filter(f => f.name.startsWith(last5 + '_') || f.name.includes('_' + last5 + '_'));
+                        matches.sort((a, b) => b.name.localeCompare(a.name)); // newest first
+                        const bestMatch = matches[0] || imgList.find(f => f.name.includes(last5));
+                        if (bestMatch) {
+                            resolvedPhoto = `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/images/${bestMatch.name}`;
+                        }
+                    }
+                } catch(e) { console.error('GitHub images/ folder fetch error:', e); }
+            }
+
+            // Build unified foundRecord
+            foundRecord = (resolvedPhoto || resolvedAwb || ghMatch) ? {
+                photoUrl: resolvedPhoto,
+                awb: resolvedAwb,
+                uploadedAt: ghMatch ? ghMatch.uploadedAt : null,
+                name: ghMatch ? ghMatch.name : ''
+            } : null;
 
             // 3. Render result
             if (foundRecord && (foundRecord.photoUrl || foundRecord.photo)) {
