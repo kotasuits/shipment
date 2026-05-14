@@ -529,6 +529,15 @@
                 let dispPhone = row.phone || row.Phone || '';
                 let dispAwb = row.awb || row.AWB || '';
 
+                // Fallback: If phone is empty, try to extract it from the address string
+                // Often Google Sheets dumps "Name Phone Pincode" all into the address field
+                if (!dispPhone && dispAddress) {
+                    const phMatch = dispAddress.match(/\b(\d{5}\s\d{5}|\d{10})\b/);
+                    if (phMatch) {
+                        dispPhone = phMatch[1].replace(/\s/g, '');
+                    }
+                }
+
                 // Fallback: if address is empty, use name field (some old scans stored address there)
                 if (!dispAddress || dispAddress.trim() === '') {
                     dispAddress = dispName;
