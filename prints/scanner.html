@@ -180,21 +180,33 @@
             }
         }
 
-        .nav-links {
-            margin-top: 40px;
+        nav {
             display: flex;
-            gap: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 26px;
+            width: 100%;
+            max-width: 600px;
         }
 
-        .nav-links a {
+        nav a {
             color: #34d399;
             text-decoration: none;
             font-weight: 600;
-            transition: color 0.3s;
+            padding: 7px 16px;
+            border: 1.5px solid rgba(16, 185, 129, .4);
+            border-radius: 8px;
+            background: rgba(16, 185, 129, .08);
+            transition: all .2s;
+            font-size: .88rem;
         }
 
-        .nav-links a:hover {
-            color: #10b981;
+        nav a:hover,
+        nav a.on {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
         }
 
         /* Setup warning */
@@ -224,26 +236,28 @@
             .glass-card {
                 padding: 15px;
             }
-            .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 10px;
+            nav {
+                gap: 8px;
                 padding: 0 5px;
             }
-            .nav-links a {
-                padding: 8px 12px;
+            nav a {
+                padding: 6px 12px;
                 font-size: 0.8rem;
-                flex: 1 1 calc(50% - 15px);
+                flex: 1 1 calc(50% - 10px);
                 text-align: center;
-                border: 1px solid rgba(52, 211, 153, 0.4);
-                border-radius: 8px;
-                background: rgba(52, 211, 153, 0.05);
             }
         }
     </style>
 </head>
 
 <body>
+    <nav>
+        <a href="index.html">📄 Labels</a>
+        <a href="scanner.html" class="on">🔍 Scanner</a>
+        <a href="dispatched.html">📋 Dispatched</a>
+        <a href="../uploads.html">📸 Upload Tracking</a>
+        <a href="../search.html">🔎 Search Photos</a>
+    </nav>
 
     <div class="header">
         <h1>Dispatch Scanner</h1>
@@ -258,14 +272,6 @@
 
         <div id="reader"></div>
         <button class="switch-btn" onclick="switchCamera()">🔄 Switch Camera (Front/Back)</button>
-    </div>
-
-    <div class="nav-links">
-        <a href="index.html">📄 Labels</a>
-        <a href="scanner.html" style="background:#3b82f6;color:white;border-color:#3b82f6;">🔍 Scanner</a>
-        <a href="dispatched.html">📋 Dispatched</a>
-        <a href="../uploads.html">📸 Upload Tracking</a>
-        <a href="../search.html">🔎 Search Photos</a>
     </div>
 
     <div id="toast" class="status-toast">
