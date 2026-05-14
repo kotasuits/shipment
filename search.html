@@ -184,6 +184,41 @@
         #imod.open { display: flex; }
         #imod img { max-width: 90vw; max-height: 88vh; border-radius: 14px; }
         .close-btn { position: absolute; top: 20px; right: 20px; font-size: 2rem; color: white; cursor: pointer; }
+
+        @media(max-width: 600px) {
+            body {
+                padding: 20px 15px;
+            }
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .glass-card {
+                padding: 15px;
+                border-radius: 16px;
+            }
+            .status-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .nav-links {
+                gap: 10px;
+                padding: 0 5px;
+            }
+            .nav-links a {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                flex: 1 1 calc(50% - 10px);
+                text-align: center;
+            }
+            #imod img {
+                max-width: 95vw;
+                max-height: 80vh;
+            }
+        }
     </style>
 </head>
 
