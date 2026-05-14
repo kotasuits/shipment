@@ -1,820 +1,486 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dispatched Log</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom PDF & Print Maker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Dancing+Script&family=Poppins:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Oswald:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Source+Sans+3:wght@400;700&family=Noto+Sans:wght@400;700&family=Mulish:wght@400;700&family=Quicksand:wght@400;700&family=Josefin+Sans:wght@400;700&family=Fira+Sans:wght@400;700&family=Exo+2:wght@400;700&family=Barlow:wght@400;700&family=Inter:wght@400;700&family=DM+Sans:wght@400;700&family=Work+Sans:wght@400;700&family=Cabin:wght@400;700&family=Karla:wght@400;700&family=Rubik:wght@400;700&family=Jost:wght@400;700&family=Manrope:wght@400;700&family=Pacifico&family=Lobster&family=Comfortaa:wght@400;700&family=Righteous&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <style>
-        :root {
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: rgba(255, 255, 255, 0.1);
-        }
+    :root {
+      --bg: #0a0f1e;
+      --card: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.1);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Outfit', sans-serif;
-        }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(59,130,246,0.18), transparent),
+        radial-gradient(ellipse 60% 50% at 80% 110%, rgba(139,92,246,0.18), transparent);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 28px 20px 60px;
+    }
 
-        body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
-                radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent 40%);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-        }
+    header { text-align: center; margin-bottom: 24px; }
+    header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            width: 100%;
-            max-width: 1000px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    nav {
+      display: flex; gap: 12px; justify-content: center;
+      flex-wrap: wrap; margin-bottom: 22px;
+    }
+    nav a {
+      text-decoration: none; color: #93c5fd; font-weight: 600;
+      font-size: 0.9rem; padding: 9px 20px;
+      border: 1px solid rgba(59,130,246,0.4); border-radius: 50px;
+      background: rgba(59,130,246,0.1); backdrop-filter: blur(10px);
+      transition: all 0.25s; display: flex; align-items: center; gap: 7px;
+    }
+    nav a:hover {
+      background: rgba(59,130,246,0.3); border-color: rgba(59,130,246,0.7);
+      transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.25);
+    }
 
-        @media(max-width: 600px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 9px;
+      justify-content: center; align-items: center;
+      background: var(--card); border: 1px solid var(--border);
+      backdrop-filter: blur(20px); border-radius: 16px;
+      padding: 16px 20px; margin-bottom: 28px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .divider { width: 1px; height: 30px; background: var(--border); flex-shrink: 0; }
 
-        .header-title h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(to right, #60a5fa, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
-        }
+    .btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 9px 15px; font-size: 14px; font-family: 'Outfit', sans-serif;
+      font-weight: 600; border-radius: 8px; border: 1px solid transparent;
+      cursor: pointer; transition: all 0.22s; white-space: nowrap;
+    }
+    .btn-default {
+      background: rgba(59,130,246,0.15); color: #93c5fd;
+      border-color: rgba(59,130,246,0.35);
+    }
+    .btn-default:hover {
+      background: rgba(59,130,246,0.3); border-color: rgba(59,130,246,0.65);
+      transform: translateY(-1px);
+    }
+    .btn-add {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      color: white; box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+    }
+    .btn-add:hover { opacity: 0.88; transform: translateY(-2px); }
+    .btn-pdf {
+      background: rgba(16,185,129,0.15); color: #6ee7b7;
+      border-color: rgba(16,185,129,0.35);
+    }
+    .btn-pdf:hover {
+      background: rgba(16,185,129,0.3); border-color: rgba(16,185,129,0.65);
+      transform: translateY(-1px);
+    }
+    .btn-print {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white; box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+    }
+    .btn-print:hover { opacity: 0.88; transform: translateY(-2px); }
 
-        .header-title p {
-            color: var(--text-muted);
-        }
+    select {
+      padding: 9px 13px; font-size: 14px; font-family: 'Outfit', sans-serif;
+      font-weight: 600; background: rgba(15,23,42,0.85); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px;
+      cursor: pointer; outline: none; transition: border-color 0.2s;
+    }
+    select:hover { border-color: rgba(59,130,246,0.5); }
+    select option { background: #1e293b; }
 
-        button.refresh-btn {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.5);
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .grid {
+      display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
+    }
 
-        button.refresh-btn:hover {
-            background: rgba(59, 130, 246, 0.4);
-            transform: translateY(-2px);
-        }
+    .addr-box {
+      width: calc(33.33% - 14px); min-width: 280px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 46px 16px 16px;
+      position: relative; backdrop-filter: blur(16px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      transition: border-color 0.25s, box-shadow 0.25s;
+      animation: fadeUp 0.3s ease both;
+    }
+    .addr-box:hover {
+      border-color: rgba(59,130,246,0.35);
+      box-shadow: 0 12px 40px rgba(59,130,246,0.12);
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
 
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            width: 100%;
-            max-width: 1000px;
-            overflow-x: auto;
-        }
+    .box-topbar {
+      position: absolute; top: 0; left: 0; right: 0; height: 42px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 12px; border-bottom: 1px solid var(--border);
+    }
+    .kdo-btn {
+      font-family: 'Dancing Script', cursive; font-size: 17px;
+      color: #c4b5fd; background: none; border: none; cursor: pointer;
+      padding: 2px 8px; border-radius: 6px; transition: background 0.2s;
+    }
+    .kdo-btn:hover { background: rgba(139,92,246,0.2); }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px;
-        }
+    .box-actions { display: flex; gap: 6px; }
+    .lock-btn {
+      font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 5px;
+      border: 1px solid rgba(239,68,68,0.45); background: rgba(239,68,68,0.12);
+      color: #fca5a5; cursor: pointer; transition: all 0.2s;
+    }
+    .lock-btn:hover { background: rgba(239,68,68,0.28); }
+    .del-btn {
+      font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 5px;
+      border: 1px solid rgba(100,116,139,0.4); background: rgba(100,116,139,0.1);
+      color: #94a3b8; cursor: pointer; transition: all 0.2s;
+    }
+    .del-btn:hover { background: rgba(239,68,68,0.22); color:#fca5a5; border-color:rgba(239,68,68,0.4); }
 
-        th,
-        td {
-            padding: 14px 20px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            vertical-align: top;
-        }
+    .editable {
+      width: 100%; min-height: 110px; max-height: 300px;
+      overflow-y: auto; word-wrap: break-word;
+      border: 1px solid rgba(255,255,255,0.08); padding: 11px;
+      border-radius: 8px; font-size: 15px; font-family: 'Poppins', sans-serif;
+      outline: none; background: rgba(255,255,255,0.93);
+      color: #111; line-height: 1.65;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .editable:focus {
+      border-color: rgba(59,130,246,0.7);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+    .editable[contenteditable="false"] { background: #e2e8f0; color: #64748b; }
 
-        th {
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-        }
+    .empty-state {
+      width: 100%; text-align: center; padding: 60px 20px; color: var(--muted);
+    }
+    .empty-state .icon { font-size: 3.5rem; margin-bottom: 14px; }
 
-        tbody tr {
-            transition: background 0.2s;
-        }
-
-        tbody tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        td {
-            font-size: 0.95rem;
-        }
-
-        .td-name {
-            font-weight: 600;
-            color: #f8fafc;
-        }
-
-        .td-time {
-            color: #94a3b8;
-            font-size: 0.85rem;
-        }
-
-        .td-status {
-            display: inline-block;
-            background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .search-container {
-            margin-bottom: 20px;
-            width: 100%;
-        }
-
-        .search-container input {
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-container input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-
-        .loading-state,
-        .error-state,
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: var(--text-muted);
-        }
-
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid #60a5fa;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            max-width: 1000px;
-            justify-content: center;
-            margin-bottom: 25px;
-        }
-
-        .nav-links a {
-            color: #3b82f6;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 8px 16px;
-            border: 2px solid rgba(59, 130, 246, 0.5);
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-        }
-
-        .nav-links a:hover {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
-
-        /* Setup warning */
-        .setup-warning {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.5);
-            color: #fca5a5;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-
-        .delete-btn {
-            background: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.5);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .delete-btn:hover {
-            background: rgba(239, 68, 68, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .track-btn {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.5);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .track-btn:hover {
-            background: rgba(59, 130, 246, 0.4);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-            opacity: 1;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            transform: scale(0.9);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            padding: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-overlay.show .modal-content {
-            transform: scale(1);
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: all 0.2s;
-        }
-
-        .close-modal:hover {
-            background: rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-        }
-
-        .tracking-photo {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-            background: #1e293b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .tracking-status-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #f8fafc;
-        }
-
-        .tracking-timeline {
-            margin-top: 25px;
-            position: relative;
-        }
-
-        .tracking-timeline::before {
-            content: '';
-            position: absolute;
-            left: 7px;
-            top: 5px;
-            bottom: 5px;
-            width: 2px;
-            background: rgba(59, 130, 246, 0.2);
-        }
-
-        .timeline-item {
-            position: relative;
-            padding-left: 30px;
-            margin-bottom: 20px;
-        }
-
-        .timeline-dot {
-            position: absolute;
-            left: 0;
-            top: 5px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #3b82f6;
-            border: 3px solid var(--bg);
-            z-index: 1;
-        }
-
-        .timeline-item.active .timeline-dot {
-            background: #10b981;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-        }
-
-        .timeline-content {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .timeline-label {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #f1f5f9;
-        }
-
-        .timeline-time {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-    </style>
+    @media (max-width: 768px) {
+      body { padding: 14px 12px 50px; }
+      .addr-box { width: 100%; }
+      .divider { display: none; }
+      .btn { padding: 9px 11px; font-size: 13px; }
+      select { font-size: 13px; padding: 8px 10px; }
+    }
+  </style>
 </head>
-
 <body>
 
-    <div class="header">
-        <div class="header-title">
-            <h1>Dispatched Items</h1>
-            <p>Live data synced directly from Google Sheets.</p>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-            <button class="refresh-btn" onclick="fetchData()"><span>↻</span> Refresh</button>
-            <button class="refresh-btn"
-                style="background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.4);"
-                onclick="localStorage.removeItem('dispatchedCache');fetchData();">🗑 Clear Cache</button>
-        </div>
+  <header>
+    <h1>&#128230; Custom PDF &amp; Print Maker</h1>
+    <p>Create, format and print shipping addresses with auto QR codes</p>
+  </header>
+
+  <nav>
+    <a href="scanner.html">&#128269; QR Scanner</a>
+    <a href="dispatched.html">&#128230; Dispatched Orders</a>
+  </nav>
+
+  <div class="toolbar">
+
+    <button class="btn btn-add" onclick="addBox()">&#10133; Add Box</button>
+
+    <div class="divider"></div>
+
+    <select id="fontFamily" onchange="applyFont()">
+      <option value="Poppins" selected>Poppins</option>
+      <option value="Roboto">Roboto</option>
+      <option value="Open Sans">Open Sans</option>
+      <option value="Lato">Lato</option>
+      <option value="Montserrat">Montserrat</option>
+      <option value="Raleway">Raleway</option>
+      <option value="Nunito">Nunito</option>
+      <option value="Oswald">Oswald</option>
+      <option value="Inter">Inter</option>
+      <option value="DM Sans">DM Sans</option>
+      <option value="Work Sans">Work Sans</option>
+      <option value="Barlow">Barlow</option>
+      <option value="Fira Sans">Fira Sans</option>
+      <option value="Exo 2">Exo 2</option>
+      <option value="Cabin">Cabin</option>
+      <option value="Karla">Karla</option>
+      <option value="Rubik">Rubik</option>
+      <option value="Jost">Jost</option>
+      <option value="Manrope">Manrope</option>
+      <option value="Mulish">Mulish</option>
+      <option value="Quicksand">Quicksand</option>
+      <option value="Josefin Sans">Josefin Sans</option>
+      <option value="Ubuntu">Ubuntu</option>
+      <option value="PT Sans">PT Sans</option>
+      <option value="Source Sans 3">Source Sans 3</option>
+      <option value="Noto Sans">Noto Sans</option>
+      <option value="Merriweather">Merriweather</option>
+      <option value="Playfair Display">Playfair Display</option>
+      <option value="Pacifico">Pacifico</option>
+      <option value="Lobster">Lobster</option>
+      <option value="Comfortaa">Comfortaa</option>
+      <option value="Righteous">Righteous</option>
+      <option value="Caveat">Caveat</option>
+      <option value="Dancing Script">Dancing Script</option>
+      <option value="Arial">Arial</option>
+      <option value="Times New Roman">Times New Roman</option>
+      <option value="Courier New">Courier New</option>
+      <option value="Segoe UI">Segoe UI</option>
+    </select>
+
+    <select id="pageSize">
+      <option value="A4">A4</option>
+      <option value="A5">A5</option>
+      <option value="A6" selected>A6</option>
+    </select>
+
+    <div class="divider"></div>
+
+    <button class="btn btn-default" onclick="alignAll('left')">Left</button>
+    <button class="btn btn-default" onclick="alignAll('right')">Right</button>
+    <button class="btn btn-default" onclick="changeFontSize(1)">A+</button>
+    <button class="btn btn-default" onclick="changeFontSize(-1)">A-</button>
+    <button class="btn btn-default" onclick="document.execCommand('bold')"><b>Bold</b></button>
+
+    <div class="divider"></div>
+
+    <button class="btn btn-pdf"   onclick="generatePDF()">Download PDF</button>
+    <button class="btn btn-print" onclick="printAddresses()">&#128424; Print</button>
+
+  </div>
+
+  <div id="grid" class="grid">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#128221;</div>
+      <p>Click <strong>Add Box</strong> to create your first address card</p>
     </div>
+  </div>
 
-    <div class="nav-links">
-        <a href="qr.html">📄 Labels</a>
-        <a href="scanner.html">🔍 Scanner</a>
-        <a href="../uploads.html">📸 Upload Tracking</a>
-        <a href="../search.html">🔎 Search Photos</a>
-    </div>
+  <script>
+    function addBox() {
+      var es = document.getElementById('emptyState');
+      if (es) es.remove();
+      var grid = document.getElementById('grid');
+      var box  = document.createElement('div');
+      box.className = 'addr-box';
+      box.innerHTML =
+        '<div class="box-topbar">' +
+          '<button class="kdo-btn" onclick="toggleKdo(this)">KDO</button>' +
+          '<div class="box-actions">' +
+            '<button class="lock-btn" onclick="toggleLock(this)">Lock</button>' +
+            '<button class="del-btn"  onclick="removeBox(this)">X</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="editable" contenteditable="true" style="font-size:16px;font-family:Poppins,sans-serif;"></div>';
+      grid.appendChild(box);
+      box.querySelector('.editable').focus();
+    }
 
-    <div class="glass-card">
-        <div id="setup-warning" class="setup-warning" style="display: none;">
-            <strong>Setup Required:</strong> You need to add your Google Web App URL in the dispatched.html file to
-            fetch data.
-        </div>
+    function removeBox(btn) {
+      var box = btn.closest('.addr-box');
+      box.style.transition = 'all 0.18s';
+      box.style.opacity = '0';
+      box.style.transform = 'scale(0.93)';
+      setTimeout(function() {
+        box.remove();
+        if (!document.querySelector('.addr-box')) {
+          document.getElementById('grid').innerHTML =
+            '<div class="empty-state" id="emptyState"><div class="icon">&#128221;</div>' +
+            '<p>Click <strong>Add Box</strong> to create your first address card</p></div>';
+        }
+      }, 180);
+    }
 
-        <div class="search-container" id="search-container">
-            <input type="text" id="searchInput" placeholder="🔍 Search customer by name or phone..."
-                onkeyup="filterTable()">
-        </div>
+    function toggleLock(btn) {
+      var ed = btn.closest('.addr-box').querySelector('.editable');
+      var locked = ed.contentEditable === 'false';
+      ed.contentEditable = locked ? 'true' : 'false';
+      btn.textContent = locked ? 'Lock' : 'Unlock';
+    }
 
-        <div id="loading" class="loading-state">
-            <div class="spinner"></div>
-            <p>Fetching data from Google Sheets...</p>
-        </div>
+    function toggleKdo(btn) {
+      btn.textContent = btn.textContent.trim() === 'KDO' ? 'KZO' : 'KDO';
+    }
 
-        <div id="error" class="error-state" style="display: none;">
-            <p id="error-msg">Failed to load data. Please check your URL and try again.</p>
-        </div>
+    function applyFont() {
+      var font = document.getElementById('fontFamily').value;
+      document.querySelectorAll('.editable').forEach(function(el) {
+        el.style.fontFamily = font;
+      });
+    }
 
-        <div id="empty" class="empty-state" style="display: none;">
-            <p>No dispatched items found. Try scanning a QR code first!</p>
-        </div>
+    function alignAll(dir) {
+      document.querySelectorAll('.editable').forEach(function(el) {
+        el.style.textAlign = dir;
+      });
+    }
 
-        <table id="data-table" style="display: none;">
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Status</th>
-                    <th>Address</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <!-- Rows will be injected here -->
-            </tbody>
-        </table>
-    </div>
+    function changeFontSize(delta) {
+      document.querySelectorAll('.editable').forEach(function(el) {
+        var cur  = parseInt(window.getComputedStyle(el).fontSize);
+        var next = cur + delta;
+        if (next >= 10 && next <= 60) el.style.fontSize = next + 'px';
+      });
+    }
 
+    /* ============================================================
+       PRINT — proven pattern from old working app
+       open window → write header → loop write pages → close → print
+       QR code wrapped in try/catch so long addresses never crash it
+    ============================================================ */
+    function printAddresses() {
+      var boxes      = document.querySelectorAll('.addr-box');
+      var fontFamily = document.getElementById('fontFamily').value;
+      var pageSize   = document.getElementById('pageSize').value;
 
+      // Open popup first (same as old working code)
+      var win = window.open('', '', 'width=800,height=900');
+      if (!win) {
+        alert('Popup blocked! Allow popups for this site in the address bar, then try again.');
+        return;
+      }
 
-    <script>
-        // ========================================================================
-        // ⚠️ IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW ⚠️
-        // ========================================================================
-        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwq6qCSjSJbk3YsTDD8pjfmROmA6ab8_GqDx1sPZIWQaOpM3dN5Vr1dwcWykOE_LklUAA/exec";
-        // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
+      // Write header immediately
+      win.document.write(
+        '<html><head>' +
+        '<title>Print ' + pageSize + '</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">' +
+        '<style>' +
+        '@page{size:' + pageSize + ' portrait;margin:10mm}' +
+        'body{font-family:' + fontFamily + ',sans-serif;margin:0;padding:0}' +
+        '.page{width:100%;height:100%;page-break-after:always;box-sizing:border-box;padding:20px;position:relative}' +
+        '.label{position:absolute;top:5px;right:10px;font-family:"Dancing Script",cursive;font-size:16px}' +
+        '.body-row{display:flex;justify-content:space-between;align-items:flex-start;padding-top:30px}' +
+        '.content{flex:1;font-size:16px;word-wrap:break-word;padding:10px}' +
+        '.qr-img{margin-left:15px;flex-shrink:0}' +
+        '.note{position:absolute;bottom:20px;left:0;width:100%;text-align:center;font-size:15px;font-weight:bold}' +
+        '</style></head><body>'
+      );
 
-        window.onload = function () {
-            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") {
-                document.getElementById('setup-warning').style.display = 'block';
-                document.getElementById('loading').style.display = 'none';
-                return;
-            }
-            fetchData();
+      // Write each page directly in the loop
+      boxes.forEach(function(box) {
+        var editable  = box.querySelector('.editable');
+        var kdoBtn    = box.querySelector('.kdo-btn');
+        var label     = kdoBtn ? kdoBtn.textContent.trim() : '';
+        var content   = editable.innerHTML.trim();
+        var plainText = editable.innerText.trim();
+        var size      = window.getComputedStyle(editable).fontSize;
+        var align     = window.getComputedStyle(editable).textAlign;
+
+        if (!content) return;
+
+        // Extract key fields
+        var phone   = (plainText.match(/\b\d{10}\b/) || [''])[0];
+        var pincode = (plainText.match(/\b\d{6}\b/)  || [''])[0];
+        var name    = '';
+        var textLines = plainText.split('\n');
+        for (var i = 0; i < textLines.length; i++) {
+          if (textLines[i].trim()) { name = textLines[i].trim(); break; }
         }
 
-        function renderData(data) {
-            if (!data || data.length === 0) {
-                document.getElementById('empty').style.display = 'block';
-                document.getElementById('data-table').style.display = 'none';
-                return;
-            }
-
-            const reversedData = [...data].reverse();
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-            const deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
-
-            reversedData.forEach(row => {
-                // Skip empty rows
-                if (!row.timestamp && !row.name && !row.phone) return;
-
-                // Skip deleted rows
-                if (deletedOrders.includes(row.timestamp)) return;
-
-                let dispAddress = row.address || row.Address || '';
-                let dispName = row.name || row.Name || '';
-
-                // Fallback: if address is empty, use name field (some old scans stored address there)
-                if (!dispAddress || dispAddress.trim() === '') {
-                    dispAddress = dispName;
-                }
-
-                let displayDate = row.timestamp || 'N/A';
-                if (row.timestamp && row.timestamp !== 'N/A') {
-                    let d = new Date(row.timestamp);
-                    if (!isNaN(d.getTime())) {
-                        const day = String(d.getDate()).padStart(2, '0');
-                        const month = String(d.getMonth() + 1).padStart(2, '0');
-                        const year = d.getFullYear();
-                        const hours = String(d.getHours()).padStart(2, '0');
-                        const mins = String(d.getMinutes()).padStart(2, '0');
-                        displayDate = `${day}/${month}/${year} ${hours}:${mins}`;
-                    } else if (row.timestamp.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
-                        displayDate = row.timestamp; // already formatted
-                    }
-                }
-
-                const tr = document.createElement('tr');
-                tr.setAttribute('data-name', String(dispName).toLowerCase());
-                tr.setAttribute('data-phone', String(row.phone || '').toLowerCase());
-                tr.innerHTML = `
-                    <td class="td-time">${displayDate}</td>
-                    <td><span class="td-status">Dispatched</span></td>
-                    <td style="white-space: pre-wrap;">${dispAddress || 'N/A'}</td>
-                    <td>
-                        <button class="track-btn" onclick="openTracker('${row.phone}', '${row.timestamp}')">
-                            <span>📍</span> Track
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            if (tbody.children.length === 0) {
-                document.getElementById('empty').style.display = 'block';
-                document.getElementById('data-table').style.display = 'none';
-            } else {
-                document.getElementById('empty').style.display = 'none';
-                document.getElementById('data-table').style.display = 'table';
-            }
+        // Generate QR code — short payload only (name+phone+pincode)
+        // Wrapped in try/catch so a long address NEVER crashes the loop
+        var qrDataUrl = '';
+        try {
+          var qrText = (name + ' ' + phone + ' ' + pincode).trim();
+          if (qrText.length < 3) qrText = plainText.substring(0, 100);
+          var qrContainer = document.createElement('div');
+          new QRCode(qrContainer, {
+            text: qrText,
+            width: 256,
+            height: 256,
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          var cv = qrContainer.querySelector('canvas');
+          if (cv) qrDataUrl = cv.toDataURL('image/png');
+        } catch (e) {
+          qrDataUrl = ''; // no QR is fine — address still prints
         }
 
-        function fetchData() {
-            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") return;
+        // Write this page into the popup
+        win.document.write(
+          '<div class="page">' +
+          '<div class="label">' + label + '</div>' +
+          '<div class="body-row">' +
+          '<div class="content" style="font-size:' + size + ';text-align:' + align + '">' + content + '</div>' +
+          (qrDataUrl ? '<div class="qr-img"><img src="' + qrDataUrl + '" width="100" height="100"/></div>' : '') +
+          '</div>' +
+          '<div class="note"><em>&#9888;&#65039; Important : Unboxing video required for any claim.</em></div>' +
+          '</div>'
+        );
+      });
 
-            // Show cached data instantly while fresh data loads in background
-            const cached = localStorage.getItem('dispatchedCache');
-            if (cached) {
-                try {
-                    renderData(JSON.parse(cached));
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('empty').style.display = 'none';
-                } catch (e) {
-                    localStorage.removeItem('dispatchedCache');
-                }
-            }
+      // Close and print — exactly like old working code
+      win.document.write('</body></html>');
+      win.document.close();
+      win.print();
+    }
 
-            document.getElementById('loading').style.display = cached ? 'none' : 'block';
-            document.getElementById('error').style.display = 'none';
+    /* ============================================================
+       PDF DOWNLOAD
+    ============================================================ */
+    async function generatePDF() {
+      var jsPDFLib = window.jspdf;
+      var doc = new jsPDFLib.jsPDF({ format: document.getElementById('pageSize').value.toLowerCase() });
+      var pageSize = document.getElementById('pageSize').value.toLowerCase();
 
-            // Google Apps Script supports CORS for GET — fetch works when deployed with "Anyone" access
-            fetch(GOOGLE_WEB_APP_URL, {
-                method: 'GET',
-                redirect: 'follow'
-            })
-                .then(function (response) {
-                    return response.text(); // use text() first to avoid JSON parse crash
-                })
-                .then(function (text) {
-                    let data;
-                    try {
-                        data = JSON.parse(text);
-                    } catch (e) {
-                        throw new Error('Invalid response from server. Check your Google Apps Script.');
-                    }
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('error').style.display = 'none';
-                    localStorage.setItem('dispatchedCache', JSON.stringify(data));
-                    renderData(data);
-                })
-                .catch(function (error) {
-                    console.error('Fetch error:', error);
-                    document.getElementById('loading').style.display = 'none';
-                    if (!cached) {
-                        document.getElementById('error-msg').innerHTML =
-                            '❌ Failed to load data.<br><small>' + error.message + '</small><br><br>' +
-                            '✅ <strong>Make sure:</strong><br>' +
-                            '1. Google Apps Script is deployed as <strong>Web App</strong><br>' +
-                            '2. Access is set to <strong>"Anyone"</strong><br>' +
-                            '3. You are connected to the internet';
-                        document.getElementById('error').style.display = 'block';
-                    } else {
-                        console.warn('Showing cached data due to network error.');
-                    }
-                });
-        }
+      var colWidth = 180, maxH = 270, qrSz = 35, qrX = 160;
+      if (pageSize === 'a5') { colWidth = 100; maxH = 190; qrSz = 30; qrX = 110; }
+      if (pageSize === 'a6') { colWidth = 65;  maxH = 130; qrSz = 25; qrX = 75;  }
 
-        function filterTable() {
-            const input = document.getElementById("searchInput").value.toLowerCase();
-            const table = document.getElementById("data-table");
-            const tr = table.getElementsByTagName("tr");
+      var boxes = document.querySelectorAll('.editable');
+      var y = 10;
 
-            for (let i = 1; i < tr.length; i++) {
-                // Search the entire text content of the row
-                const rowText = tr[i].innerText.toLowerCase();
-                if (rowText.includes(input)) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
+      for (var b = 0; b < boxes.length; b++) {
+        var text = boxes[b].innerText.trim();
+        if (!text) continue;
 
-        function deleteOrder(timestamp) {
-            if (confirm("Are you sure you want to delete this order?")) {
-                // Send delete request to Google Sheets
-                const formData = new URLSearchParams();
-                formData.append("action", "delete");
-                formData.append("timestamp", timestamp);
+        var phone   = (text.match(/\b\d{10}\b/) || [''])[0];
+        var pincode = (text.match(/\b\d{6}\b/)  || [''])[0];
+        var name    = text.split('\n').find(function(l){ return l.trim(); }) || '';
+        var qrUrl   = null;
 
-                fetch(GOOGLE_WEB_APP_URL, {
-                    method: "POST",
-                    body: formData
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === "success") {
-                            console.log("Successfully deleted from sheet.");
-                            // Hide on frontend only after success
-                            let deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
-                            if (!deletedOrders.includes(timestamp)) {
-                                deletedOrders.push(timestamp);
-                                localStorage.setItem('deletedOrders', JSON.stringify(deletedOrders));
-                            }
-                            fetchData(); // Refresh table to remove the deleted row
-                        } else {
-                            console.error("Failed to delete from sheet: " + (data.message || "Unknown error"));
-                            alert("Failed to delete from Google Sheets. Error: " + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Error deleting from sheet:", error);
-                        alert("Network error. Could not delete.");
-                    });
-            }
-        }
+        try {
+          var qDiv = document.createElement('div');
+          new QRCode(qDiv, {
+            text: name + ' ' + phone + ' ' + pincode,
+            width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M
+          });
+          await new Promise(function(r){ setTimeout(r, 60); });
+          var cv = qDiv.querySelector('canvas');
+          if (cv) qrUrl = cv.toDataURL('image/png');
+        } catch(e) { qrUrl = null; }
 
-        // Tracking Modal Functions
-        function openTracker(phone, timestamp) {
-            // Create modal if it doesn't exist
-            let modal = document.getElementById('trackingModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'trackingModal';
-                modal.className = 'modal-overlay';
-                modal.innerHTML = `
-                    <div class="modal-content">
-                        <button class="close-modal" onclick="closeTracker()">×</button>
-                        <div id="modal-photo" class="tracking-photo">
-                            <span>No photo available yet</span>
-                        </div>
-                        <div class="tracking-status-title">Parcel Status</div>
-                        <p id="modal-details" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
-                            ID: \${phone || 'N/A'}
-                        </p>
-                        
-                        <div class="tracking-timeline" id="tracking-timeline">
-                            <div class="timeline-item active">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <span class="timeline-label">Order Dispatched</span>
-                                    <span class="timeline-time">\${timestamp || 'Recently'}</span>
-                                </div>
-                            </div>
-                            <!-- More items will be loaded dynamically -->
-                        </div>
-                        
-                        <div style="margin-top: 30px;">
-                            <button class="refresh-btn" style="width: 100%; justify-content: center;" onclick="loadTrackingData('\${phone}')">
-                                ↻ Update Status
-                            </button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            }
+        var lines  = doc.splitTextToSize(text, colWidth);
+        var blockH = Math.max(lines.length * 6, qrSz) + 15;
 
-            // Update content for specific record
-            document.getElementById('modal-details').innerText = `Phone: ${phone || 'N/A'} | Time: ${timestamp}`;
-            
-            // Show modal
-            modal.style.display = 'flex';
-            setTimeout(() => modal.classList.add('show'), 10);
+        if (y + blockH > maxH && y !== 10) { doc.addPage(); y = 10; }
+        doc.text(lines, 10, y + 5);
+        if (qrUrl) doc.addImage(qrUrl, 'PNG', qrX, y, qrSz, qrSz);
+        y += blockH;
+      }
 
-            // Load actual data
-            loadTrackingData(phone);
-        }
+      doc.save('addresses.pdf');
+    }
 
-        function closeTracker() {
-            const modal = document.getElementById('trackingModal');
-            if (modal) {
-                modal.classList.remove('show');
-                setTimeout(() => modal.style.display = 'none', 300);
-            }
-        }
-
-        async function loadTrackingData(phone) {
-            const photoContainer = document.getElementById('modal-photo');
-            const timeline = document.getElementById('tracking-timeline');
-            
-            // Normalize phone for comparison (remove spaces)
-            const cleanPhone = phone.replace(/\s/g, '');
-            
-            // Check local storage first (for backward compatibility or session data)
-            let allTracking = JSON.parse(localStorage.getItem('trackingData') || '{}');
-            let data = allTracking[phone] || allTracking[cleanPhone];
-
-            // If not in local storage, try GitHub if config exists
-            if (!data) {
-                const cfg = JSON.parse(localStorage.getItem('ghTrackCfg') || '{}');
-                if (cfg.token && cfg.repo) {
-                    try {
-                        photoContainer.innerHTML = '<div class="spinner" style="width:20px;height:20px;margin:10px auto;"></div><span>Fetching from GitHub...</span>';
-                        
-                        const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/records.json?ref=${cfg.branch || 'main'}&t=${Date.now()}`, {
-                            headers: { 'Authorization': 'token ' + cfg.token }
-                        });
-                        
-                        if (res.ok) {
-                            const d = await res.json();
-                            const decoded = atob(d.content.replace(/\n/g, ''));
-                            const records = JSON.parse(decoded);
-                            
-                            // Find matching record by phone (allow space-aware match)
-                            data = records.find(r => r.phone.replace(/\s/g, '') === cleanPhone);
-                            
-                            if (data) {
-                                // Map GitHub structure to local structure
-                                data.photo = data.photoUrl;
-                                data.status = 'Dispatched (Logged)'; // Or use a status if available
-                                data.updateTime = data.uploadedAt;
-                            }
-                        }
-                    } catch (e) {
-                        console.error("GitHub fetch failed:", e);
-                    }
-                }
-            }
-
-            if (data) {
-                if (data.photo) {
-                    photoContainer.innerHTML = `<img src="${data.photo}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;" onerror="this.src='https://via.placeholder.com/400x250?text=Photo+Not+Found'">`;
-                } else {
-                    photoContainer.innerHTML = '<span>Photo pending upload</span>';
-                }
-
-                // Append additional timeline steps if status changed
-                if (data.status && data.status !== 'Dispatched') {
-                    timeline.innerHTML = `
-                        <div class="timeline-item">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <span class="timeline-label">Order Dispatched</span>
-                                <span class="timeline-time">Initial Scan</span>
-                            </div>
-                        </div>
-                        <div class="timeline-item active">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <span class="timeline-label">${data.status}</span>
-                                <span class="timeline-time">${new Date(data.updateTime).toLocaleString()}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-            } else {
-                photoContainer.innerHTML = '<span>No tracking photo uploaded yet</span>';
-            }
-        }
-
-        // Close on outside click
-        window.onclick = function(event) {
-            const modal = document.getElementById('trackingModal');
-            if (event.target == modal) {
-                closeTracker();
-            }
-        }
-    </script>
+    // Start with one box
+    addBox();
+  </script>
 </body>
-
 </html>
