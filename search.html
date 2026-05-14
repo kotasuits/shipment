@@ -211,10 +211,11 @@
     </div>
 
     <div class="nav-links">
-        <a href="prints/qr.html">📄 Labels</a>
+        <a href="prints/index.html">📄 Labels</a>
         <a href="prints/scanner.html">🔍 Scanner</a>
         <a href="prints/dispatched.html">📋 Dispatched</a>
         <a href="uploads.html">📸 Upload Tracking</a>
+        <a href="search.html" class="on">🔎 Search Photos</a>
     </div>
 
     <div id="imod" onclick="this.classList.remove('open')">
@@ -260,7 +261,7 @@
                     if (res.ok) {
                         const d = await res.json();
                         const decoded = atob(d.content.replace(/\n/g, ''));
-                        const ghRecords = JSON.parse(decoded);
+                        const ghRecords = decoded.trim() ? JSON.parse(decoded) : [];
                         
                         ghRecords.forEach(r => {
                             if (!allRecords.find(lr => lr.phone === r.phone)) {
