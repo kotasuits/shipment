@@ -652,6 +652,91 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Full-On Upload Overlay */
+        #uploadOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 15, 30, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 20000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px;
+            text-align: center;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .up-focus-card {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        .up-focus-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #818cf8, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .up-master-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .up-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #6366f1, #22d3ee);
+            transition: width 0.3s ease;
+        }
+
+        #up-focus-log {
+            max-height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding-right: 5px;
+        }
+        
+        #up-focus-log::-webkit-scrollbar { width: 4px; }
+        #up-focus-log::-webkit-scrollbar-thumb { background: var(--bdr); border-radius: 10px; }
+
+        .up-done-btn {
+            display: none;
+            width: 100%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .up-done-btn:hover { transform: scale(1.02); }
     </style>
 </head>
 
@@ -992,15 +1077,28 @@
 
             const btn = document.getElementById('ubtn');
             btn.disabled = true; btn.textContent = '⏳ Uploading…';
-            const log = document.getElementById('uplog');
-            log.innerHTML = '<div style="font-size:.85rem;color:var(--muted);margin-bottom:8px;">Upload progress:</div>';
+            
+            // Setup Full-On Overlay
+            const overlay = document.getElementById('uploadOverlay');
+            const log = document.getElementById('up-focus-log');
+            const bar = document.getElementById('up-bar');
+            const doneBtn = document.getElementById('up-done-btn');
+            
+            log.innerHTML = '';
+            bar.style.width = '0%';
+            doneBtn.style.display = 'none';
+            overlay.style.display = 'flex';
 
             const newRecords = [];
+            let currentIdx = 0;
             for (let p of pending) {
+                currentIdx++;
                 const item = document.createElement('div');
                 item.className = 'up-item going';
-                item.innerHTML = `<span class="up-icon"></span><span class="up-name">${p.name} — ${p.file?.name || 'photo'}</span><span style="color:var(--muted);font-size:.8rem;">Saving…</span>`;
+                item.innerHTML = `<span class="up-icon"></span><span class="up-name">${p.name || 'Parcel'} — ${p.awb || 'No AWB'}</span><span style="color:var(--muted);font-size:.8rem;">...</span>`;
                 log.appendChild(item);
+                log.scrollTop = log.scrollHeight;
+
                 try {
                     const ts = new Date().toISOString();
                     // Use last-5 digits of Phone OR AWB for filename linking
@@ -1014,32 +1112,48 @@
                     const url = await uploadImage(fname, p.dataUrl);
                     const rec = { id: p.id, name: p.name, pincode: p.pincode, phone: p.phone, awb: p.awb, photoUrl: url, photoPath: `images/${fname}`, uploadedAt: ts };
                     newRecords.push(rec);
+                    
                     item.className = 'up-item done';
-                    item.querySelector('span:last-child').textContent = 'Photo Uploaded ✅';
+                    item.querySelector('span:last-child').textContent = 'Uploaded';
                 } catch (e) {
                     item.className = 'up-item fail';
-                    item.querySelector('span:last-child').textContent = 'Failed: ' + e.message;
+                    item.querySelector('span:last-child').textContent = 'Error';
                 }
+                
+                // Update master progress bar
+                bar.style.width = Math.round((currentIdx / pending.length) * 80) + '%';
             }
 
             if (newRecords.length > 0) {
                 try {
                     const statusItem = document.createElement('div');
                     statusItem.className = 'up-item going';
-                    statusItem.innerHTML = `<span class="up-icon"></span><span class="up-name">Updating records.json</span>`;
+                    statusItem.innerHTML = `<span class="up-icon"></span><span class="up-name">Finalizing Database</span>`;
                     log.appendChild(statusItem);
+                    log.scrollTop = log.scrollHeight;
 
                     const { records, sha } = await fetchRecordsJSON();
                     const updatedRecords = [...records, ...newRecords];
                     await pushRecordsJSON(updatedRecords, sha);
 
                     statusItem.className = 'up-item done';
-                    statusItem.innerHTML = `<span class="up-icon"></span><span class="up-name">Database updated! ✅</span>`;
-                } catch (e) { toast('Failed to update records.json: ' + e.message, 'er'); }
+                    bar.style.width = '100%';
+                } catch (e) { 
+                    toast('Database error: ' + e.message, 'er');
+                    const errItem = document.createElement('div');
+                    errItem.className = 'up-item fail';
+                    errItem.innerHTML = `<span class="up-icon"></span><span class="up-name">Database Sync Failed</span>`;
+                    log.appendChild(errItem);
+                }
             }
 
             btn.disabled = false; btn.textContent = '☁️ Upload to GitHub';
             toast(`Upload complete!`, 'ok');
+            doneBtn.style.display = 'block';
+        }
+
+        function closeUploadOverlay() {
+            document.getElementById('uploadOverlay').style.display = 'none';
             clearPending();
             loadRecords();
         }
