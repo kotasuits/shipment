@@ -858,17 +858,42 @@
         function processDetectedText(text, pObj) {
             if (!text) return;
             text = text.trim();
-            let ph = text.match(/\b\d{10}\b/);
-            let pin = text.match(/\b\d{6}\b/);
-            if (ph && !pObj.phone) { pObj.phone = ph[0]; toast('Phone detected!', 'in'); }
-            if (pin && !pObj.pincode) { pObj.pincode = pin[0]; toast('Pincode detected!', 'in'); }
-            if (!ph && !pin && text.length > 5) { pObj.awb = text; toast('AWB/Barcode detected!', 'in'); }
-            else if (text.length > 10 && !pObj.awb) { pObj.awb = text; }
-            if (ph || pin) {
+
+            // Match phone: 10 consecutive digits OR 5 digits + space + 5 digits
+            let phMatch = text.match(/\b(\d{5}\s\d{5}|\d{10})\b/);
+            // Match 6-digit pincode (won't overlap with phone digits)
+            let pinMatch = text.match(/\b(\d{6})\b/);
+
+            if (phMatch && !pObj.phone) {
+                // Normalize: strip the space if present
+                pObj.phone = phMatch[1].replace(/\s/g, '');
+                toast('Phone detected!', 'in');
+            }
+            if (pinMatch && !pObj.pincode) {
+                pObj.pincode = pinMatch[1];
+                toast('Pincode detected!', 'in');
+            }
+
+            // Any code that doesn't contain only phone/pin digits is treated as AWB/Barcode
+            // E.g. a barcode scanner sends a standalone tracking number like D12345678
+            const digitsOnly = text.replace(/\D/g, '');
+            const isOnlyPhone = phMatch && text.replace(/\s/g, '') === digitsOnly && digitsOnly.length === 10;
+            const isOnlyPin = pinMatch && digitsOnly.length === 6;
+
+            if (!isOnlyPhone && !isOnlyPin && text.length > 4 && !pObj.awb) {
+                pObj.awb = text.trim();
+                toast('AWB/Barcode detected!', 'in');
+            } else if (text.length > 10 && !pObj.awb) {
+                pObj.awb = text.trim();
+            }
+
+            // Try to extract name from remaining text
+            if (phMatch || pinMatch) {
                 let n = text;
-                if (ph) n = n.replace(ph[0], '');
-                if (pin) n = n.replace(pin[0], '');
-                if (n.trim() && !pObj.name) pObj.name = n.trim();
+                if (phMatch) n = n.replace(phMatch[1], '');
+                if (pinMatch) n = n.replace(pinMatch[1], '');
+                n = n.replace(/[|\-_]+/g, ' ').trim();
+                if (n && !pObj.name) pObj.name = n;
             }
         }
 
@@ -887,7 +912,7 @@
         <div class="fg"><label>Name</label><input type="text" id="n-${p.id}" placeholder="Customer name" value="${p.name}" oninput="upd('${p.id}','name',this.value)"></div>
         <div class="fg"><label>AWB / Tracking ID</label><input type="text" id="a-${p.id}" placeholder="Scan or type AWB" value="${p.awb || ''}" oninput="upd('${p.id}','awb',this.value)"></div>
         <div class="fg"><label>Pincode</label><input type="text" id="p-${p.id}" placeholder="6-digit pincode" maxlength="6" value="${p.pincode}" oninput="upd('${p.id}','pincode',this.value)"></div>
-        <div class="fg"><label>Phone</label><input type="tel" id="ph-${p.id}" placeholder="10-digit phone" maxlength="10" value="${p.phone}" oninput="upd('${p.id}','phone',this.value)"></div>
+        <div class="fg"><label>Phone</label><input type="tel" id="ph-${p.id}" placeholder="Phone number" maxlength="11" value="${p.phone}" oninput="upd('${p.id}','phone',this.value)"></div>
       </div>
     </div>`).join('');
         }
@@ -935,7 +960,11 @@
                 log.appendChild(item);
                 try {
                     const ts = new Date().toISOString();
-                    const fname = `${Date.now()}_${p.name.replace(/\s+/g, '_').slice(0, 20)}.jpg`;
+                    // Include last-5 digits of phone in filename for easy lookup
+                    const cleanPh = (p.phone || '').replace(/\D/g, '');
+                    const ph5 = cleanPh.slice(-5) || 'xxxxx';
+                    const safeName = (p.name || 'unknown').replace(/\s+/g, '_').slice(0, 15);
+                    const fname = `${ph5}_${Date.now()}_${safeName}.jpg`;
                     const url = await uploadImage(fname, p.dataUrl);
                     const rec = { id: p.id, name: p.name, pincode: p.pincode, phone: p.phone, awb: p.awb, photoUrl: url, photoPath: `images/${fname}`, uploadedAt: ts };
                     newRecords.push(rec);
