@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dispatched Log</title>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -17,12 +19,17 @@
             --border: rgba(255, 255, 255, 0.1);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
 
         body {
             background-color: var(--bg);
             background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
-                              radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent 40%);
+                radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent 40%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -42,7 +49,10 @@
         }
 
         @media(max-width: 600px) {
-            .header { flex-direction: column; gap: 15px; }
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
         }
 
         .header-title h1 {
@@ -51,6 +61,11 @@
             background: linear-gradient(to right, #60a5fa, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
         }
 
         button.refresh-btn {
@@ -62,6 +77,9 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         button.refresh-btn:hover {
@@ -72,6 +90,7 @@
         .glass-card {
             background: var(--card-bg);
             backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 20px;
@@ -81,22 +100,63 @@
             overflow-x: auto;
         }
 
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th, td {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th,
+        td {
             padding: 14px 20px;
             text-align: left;
             border-bottom: 1px solid var(--border);
+            vertical-align: top;
         }
-        th { font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.85rem; }
-        tbody tr:hover { background: rgba(255, 255, 255, 0.05); }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        td {
+            font-size: 0.95rem;
+        }
+
+        .td-name {
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .td-time {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
 
         .td-status {
+            display: inline-block;
             background: rgba(16, 185, 129, 0.2);
             color: #34d399;
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            width: 100%;
         }
 
         .search-container input {
@@ -106,7 +166,183 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             color: white;
+            font-size: 1rem;
             outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-container input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .loading-state,
+        .error-state,
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #60a5fa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            max-width: 1000px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .nav-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            border: 2px solid rgba(59, 130, 246, 0.5);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+        }
+
+        .nav-links a:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        /* Setup warning */
+        .setup-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .track-btn {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .track-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .close-modal:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
         }
 
         .tracking-photo {
@@ -121,42 +357,84 @@
             align-items: center;
             justify-content: center;
             color: var(--text-muted);
+            font-size: 0.9rem;
         }
 
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(8px);
-            display: none; justify-content: center; align-items: center;
-            z-index: 2000;
+        .tracking-status-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #f8fafc;
         }
-        .modal-overlay.show { display: flex; }
-        .modal-content {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            width: 90%; max-width: 500px;
-            padding: 30px;
+
+        .tracking-timeline {
+            margin-top: 25px;
             position: relative;
         }
-        .close-modal {
-            position: absolute; top: 20px; right: 20px;
-            background: rgba(255,255,255,0.1); border: none; color: white;
-            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+
+        .tracking-timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 5px;
+            bottom: 5px;
+            width: 2px;
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: 3px solid var(--bg);
+            z-index: 1;
+        }
+
+        .timeline-item.active .timeline-dot {
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .timeline-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .timeline-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #f1f5f9;
+        }
+
+        .timeline-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
     </style>
 </head>
+
 <body>
 
     <div class="header">
         <div class="header-title">
             <h1>Dispatched Items</h1>
-            <p>Live data synced from Google Sheets</p>
+            <p>Live data synced directly from Google Sheets.</p>
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
-            <button class="refresh-btn" onclick="fetchData()">↻ Refresh</button>
-            <button class="refresh-btn" onclick="setupGitHubConfig()">⚙️ GitHub Setup</button>
-            <button class="refresh-btn" style="background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.4);" onclick="clearAllCache()">🗑 Clear Cache</button>
+            <button class="refresh-btn" onclick="fetchData()"><span>↻</span> Refresh</button>
+            <button class="refresh-btn"
+                style="background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.4);"
+                onclick="localStorage.removeItem('dispatchedCache');fetchData();">🗑 Clear Cache</button>
         </div>
     </div>
 
@@ -168,23 +446,30 @@
     </div>
 
     <div class="glass-card">
-        <div id="setup-warning" class="setup-warning" style="display:none;">
-            <strong>Setup Required:</strong> Add your Google Web App URL.
+        <div id="setup-warning" class="setup-warning" style="display: none;">
+            <strong>Setup Required:</strong> You need to add your Google Web App URL in the dispatched.html file to
+            fetch data.
         </div>
 
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="🔍 Search by name or phone..." onkeyup="filterTable()">
+        <div class="search-container" id="search-container">
+            <input type="text" id="searchInput" placeholder="🔍 Search customer by name or phone..."
+                onkeyup="filterTable()">
         </div>
 
         <div id="loading" class="loading-state">
             <div class="spinner"></div>
-            <p>Fetching data...</p>
+            <p>Fetching data from Google Sheets...</p>
         </div>
 
-        <div id="error" class="error-state" style="display:none;"></div>
-        <div id="empty" class="empty-state" style="display:none;">No dispatched items found.</div>
+        <div id="error" class="error-state" style="display: none;">
+            <p id="error-msg">Failed to load data. Please check your URL and try again.</p>
+        </div>
 
-        <table id="data-table" style="display:none;">
+        <div id="empty" class="empty-state" style="display: none;">
+            <p>No dispatched items found. Try scanning a QR code first!</p>
+        </div>
+
+        <table id="data-table" style="display: none;">
             <thead>
                 <tr>
                     <th>Timestamp</th>
@@ -193,45 +478,31 @@
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody id="table-body"></tbody>
+            <tbody id="table-body">
+                <!-- Rows will be injected here -->
+            </tbody>
         </table>
     </div>
 
+
+
     <script>
-        // ================== CONFIG ==================
+        // ========================================================================
+        // ⚠️ IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW ⚠️
+        // ========================================================================
         const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwq6qCSjSJbk3YsTDD8pjfmROmA6ab8_GqDx1sPZIWQaOpM3dN5Vr1dwcWykOE_LklUAA/exec";
+        // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
 
-        window._rowStore = [];
-
-        // GitHub Config Setup
-        function setupGitHubConfig() {
-            const token = prompt("Enter your GitHub Personal Access Token (with repo scope):");
-            if (!token) return;
-            
-            const repo = prompt("Enter your repo (username/repo):", "YOURUSERNAME/your-repo");
-            if (!repo) return;
-
-            const cfg = { token, repo, branch: "main" };
-            localStorage.setItem('ghTrackCfg', JSON.stringify(cfg));
-            alert("✅ GitHub config saved! Refresh the page.");
-        }
-
-        function clearAllCache() {
-            if (confirm("Clear all cache?")) {
-                localStorage.removeItem('dispatchedCache');
-                localStorage.removeItem('trackingData');
-                localStorage.removeItem('deletedOrders');
-                fetchData();
-            }
-        }
+        window._rowStore = []; // reset on every data render
 
         window.onload = function () {
-            if (!GOOGLE_WEB_APP_URL) {
+            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") {
                 document.getElementById('setup-warning').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
                 return;
             }
             fetchData();
-        };
+        }
 
         function renderData(data) {
             if (!data || data.length === 0) {
@@ -240,178 +511,439 @@
                 return;
             }
 
+            const reversedData = [...data].reverse();
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
-            window._rowStore = [];
-
+            window._rowStore = []; // Reset on each render
             const deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
 
-            [...data].reverse().forEach((row, idx) => {
-                if (!row.timestamp) return;
+            reversedData.forEach(row => {
+                // Skip empty rows
+                if (!row.timestamp && !row.name && !row.phone) return;
+
+                // Skip deleted rows
                 if (deletedOrders.includes(row.timestamp)) return;
 
-                const address = row.address || row.Address || row.name || 'N/A';
-                const phone = row.phone || row.Phone || '';
-                const awb = row.awb || row.AWB || '';
+                let dispAddress = row.address || row.Address || '';
+                let dispName = row.name || row.Name || '';
+                let dispPhone = row.phone || row.Phone || '';
+                let dispAwb = row.awb || row.AWB || '';
 
-                let displayDate = row.timestamp;
-                if (row.timestamp) {
-                    const d = new Date(row.timestamp);
-                    if (!isNaN(d)) {
-                        displayDate = d.toLocaleString('en-IN');
+                // Fallback: if address is empty, use name field (some old scans stored address there)
+                if (!dispAddress || dispAddress.trim() === '') {
+                    dispAddress = dispName;
+                }
+
+                let displayDate = row.timestamp || 'N/A';
+                if (row.timestamp && row.timestamp !== 'N/A') {
+                    let d = new Date(row.timestamp);
+                    if (!isNaN(d.getTime())) {
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const year = d.getFullYear();
+                        const hours = String(d.getHours()).padStart(2, '0');
+                        const mins = String(d.getMinutes()).padStart(2, '0');
+                        displayDate = `${day}/${month}/${year} ${hours}:${mins}`;
+                    } else if (row.timestamp.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+                        displayDate = row.timestamp; // already formatted
                     }
                 }
 
                 const tr = document.createElement('tr');
+                tr.setAttribute('data-name', String(dispName).toLowerCase());
+                tr.setAttribute('data-phone', String(dispPhone).toLowerCase());
+
+                // Store row data for the modal to look up later
+                const rowIdx = window._rowStore.length;
+                window._rowStore.push({ phone: dispPhone, timestamp: row.timestamp || '', awb: dispAwb });
+
                 tr.innerHTML = `
                     <td class="td-time">${displayDate}</td>
                     <td><span class="td-status">Dispatched</span></td>
-                    <td>${address}</td>
+                    <td style="white-space: pre-wrap;">${dispAddress || 'N/A'}</td>
                     <td>
-                        <button class="track-btn" onclick="openTracker(${idx})">📍 Track</button>
+                        <button class="track-btn" onclick="openTracker(${rowIdx})">
+                            <span>📍</span> Track
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
-                window._rowStore.push({ phone, timestamp: row.timestamp, awb });
             });
 
-            document.getElementById('data-table').style.display = 'table';
+            if (tbody.children.length === 0) {
+                document.getElementById('empty').style.display = 'block';
+                document.getElementById('data-table').style.display = 'none';
+            } else {
+                document.getElementById('empty').style.display = 'none';
+                document.getElementById('data-table').style.display = 'table';
+            }
         }
 
-        async function fetchData() {
+        function fetchData() {
+            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") return;
+
+            // Show cached data instantly while fresh data loads in background
             const cached = localStorage.getItem('dispatchedCache');
-            if (cached) renderData(JSON.parse(cached));
+            if (cached) {
+                try {
+                    renderData(JSON.parse(cached));
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('empty').style.display = 'none';
+                } catch (e) {
+                    localStorage.removeItem('dispatchedCache');
+                }
+            }
 
             document.getElementById('loading').style.display = cached ? 'none' : 'block';
             document.getElementById('error').style.display = 'none';
 
-            try {
-                const res = await fetch(GOOGLE_WEB_APP_URL + '?t=' + Date.now());
-                const text = await res.text();
-                const data = JSON.parse(text);
-
-                localStorage.setItem('dispatchedCache', JSON.stringify(data));
-                renderData(data);
-            } catch (err) {
-                console.error(err);
-                document.getElementById('error').innerHTML = `<p>Failed to fetch data. Check internet / Google Script.</p>`;
-                document.getElementById('error').style.display = 'block';
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-            }
+            // Google Apps Script supports CORS for GET — fetch works when deployed with "Anyone" access
+            fetch(GOOGLE_WEB_APP_URL, {
+                method: 'GET',
+                redirect: 'follow'
+            })
+                .then(function (response) {
+                    return response.text(); // use text() first to avoid JSON parse crash
+                })
+                .then(function (text) {
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        throw new Error('Invalid response from server. Check your Google Apps Script.');
+                    }
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'none';
+                    localStorage.setItem('dispatchedCache', JSON.stringify(data));
+                    renderData(data);
+                })
+                .catch(function (error) {
+                    console.error('Fetch error:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    if (!cached) {
+                        document.getElementById('error-msg').innerHTML =
+                            '❌ Failed to load data.<br><small>' + error.message + '</small><br><br>' +
+                            '✅ <strong>Make sure:</strong><br>' +
+                            '1. Google Apps Script is deployed as <strong>Web App</strong><br>' +
+                            '2. Access is set to <strong>"Anyone"</strong><br>' +
+                            '3. You are connected to the internet';
+                        document.getElementById('error').style.display = 'block';
+                    } else {
+                        console.warn('Showing cached data due to network error.');
+                    }
+                });
         }
 
         function filterTable() {
-            const filter = document.getElementById("searchInput").value.toLowerCase();
-            const rows = document.querySelectorAll("#table-body tr");
-            rows.forEach(row => {
-                row.style.display = row.textContent.toLowerCase().includes(filter) ? "" : "none";
-            });
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const table = document.getElementById("data-table");
+            const tr = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                // Search the entire text content of the row
+                const rowText = tr[i].innerText.toLowerCase();
+                if (rowText.includes(input)) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
         }
 
+        function deleteOrder(timestamp) {
+            if (confirm("Are you sure you want to delete this order?")) {
+                // Send delete request to Google Sheets
+                const formData = new URLSearchParams();
+                formData.append("action", "delete");
+                formData.append("timestamp", timestamp);
+
+                fetch(GOOGLE_WEB_APP_URL, {
+                    method: "POST",
+                    body: formData
+                })
+                    .then(response => response.text())
+                    .then(text => {
+                        let data;
+                        try {
+                            data = JSON.parse(text);
+                        } catch (e) {
+                            throw new Error('Server returned invalid data.');
+                        }
+                        
+                        if (data.status === "success") {
+                            console.log("Successfully deleted from sheet.");
+                            // Hide on frontend only after success
+                            let deletedOrders = JSON.parse(localStorage.getItem('deletedOrders') || '[]');
+                            if (!deletedOrders.includes(timestamp)) {
+                                deletedOrders.push(timestamp);
+                                localStorage.setItem('deletedOrders', JSON.stringify(deletedOrders));
+                            }
+                            fetchData(); // Refresh table to remove the deleted row
+                        } else {
+                            console.error("Failed to delete from sheet: " + (data.message || "Unknown error"));
+                            alert("Failed to delete from Google Sheets. Error: " + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error deleting from sheet:", error);
+                        alert("Network error. Could not delete.");
+                    });
+            }
+        }
+
+        // ── Tracking Modal ──
         function openTracker(idx) {
             const row = window._rowStore[idx];
             if (!row) return;
 
+            // Build modal HTML fresh each time
             let modal = document.getElementById('trackingModal');
             if (!modal) {
                 modal = document.createElement('div');
                 modal.id = 'trackingModal';
                 modal.className = 'modal-overlay';
                 document.body.appendChild(modal);
+                modal.addEventListener('click', e => { if (e.target === modal) closeTracker(); });
             }
 
             modal.innerHTML = `
                 <div class="modal-content">
                     <button class="close-modal" onclick="closeTracker()">×</button>
                     <div id="modal-photo" class="tracking-photo">
-                        <div class="spinner" style="width:40px;height:40px;"></div>
+                        <div class="spinner" style="width:36px;height:36px;margin:auto;border:3px solid rgba(255,255,255,0.1);border-top-color:#60a5fa;border-radius:50%;animation:modalSpin 0.8s linear infinite;"></div>
                     </div>
-                    <h3>Parcel Tracking</h3>
-                    <p style="color:var(--text-muted)">📞 ${row.phone || 'N/A'}</p>
-                    <div id="tracking-timeline"></div>
-                    <div id="live-track-btn-wrap" style="margin-top:15px;"></div>
-                    <button class="refresh-btn" style="width:100%;margin-top:15px;" onclick="loadTrackingData('${row.phone}','${row.awb || ''}')">↻ Refresh Photo</button>
+                    <div class="tracking-status-title">Parcel Status</div>
+                    <p id="modal-details" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">📞 ${row.phone || 'N/A'}</p>
+                    <div class="tracking-timeline" id="tracking-timeline">
+                        <div class="timeline-item active">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-label">Order Dispatched</span>
+                                <span class="timeline-time">${row.timestamp || 'Recently'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="live-track-btn-wrap" style="margin-top:18px;"></div>
+                    <div style="margin-top:12px;">
+                        <button class="refresh-btn" style="width:100%;justify-content:center;" onclick="loadTrackingData('${row.phone}','${row.awb}')">↻ Refresh Photo</button>
+                    </div>
                 </div>
             `;
 
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
-
             loadTrackingData(row.phone, row.awb);
         }
 
         function closeTracker() {
             const modal = document.getElementById('trackingModal');
-            if (modal) modal.classList.remove('show');
+            if (modal) {
+                modal.classList.remove('show');
+                setTimeout(() => modal.style.display = 'none', 300);
+            }
         }
 
-        // ================== MAIN FIX ==================
-        async function loadTrackingData(phone, awb = '') {
+        async function loadTrackingData(phone, awb) {
             const photoContainer = document.getElementById('modal-photo');
-            const cfg = JSON.parse(localStorage.getItem('ghTrackCfg') || '{}');
+            const liveWrap = document.getElementById('live-track-btn-wrap');
+            if (!photoContainer) return;
 
-            if (!cfg.repo) {
-                photoContainer.innerHTML = `<div style="text-align:center;padding:30px;">GitHub config not set.<br><button onclick="setupGitHubConfig()">Setup Now</button></div>`;
-                return;
-            }
-
+            // Normalize: strip spaces and non-digits, then get last 5 digits
             const cleanPhone = (phone || '').replace(/\D/g, '');
             const last5 = cleanPhone.slice(-5);
 
-            let photoUrl = null;
-            let foundAwb = awb;
-
-            try {
-                // 1. Try records.json
-                const recordsRes = await fetch(`https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/records.json?t=${Date.now()}`);
-                if (recordsRes.ok) {
-                    const records = await recordsRes.json();
-                    const match = records.find(r => (r.phone || '').replace(/\D/g, '').slice(-5) === last5);
-                    if (match) {
-                        photoUrl = match.photoUrl || match.photo;
-                        foundAwb = match.awb || foundAwb;
-                    }
-                }
-
-                // 2. Fallback: Try direct image
-                if (!photoUrl) {
-                    const extensions = ['jpg', 'jpeg', 'png'];
-                    for (let ext of extensions) {
-                        const testUrl = `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/images/${last5}.${ext}`;
-                        const test = await fetch(testUrl, { method: 'HEAD' });
-                        if (test.ok) {
-                            photoUrl = testUrl;
-                            break;
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error(e);
+            // Helper: check if a record's phone last-5 matches
+            function phoneLast5Match(recordPhone) {
+                if (!last5 || last5.length < 4) return false; // Prevent empty matching everything
+                const rClean = (recordPhone || '').replace(/\D/g, '');
+                return rClean.slice(-5) === last5;
             }
 
-            // Render Photo
-            if (photoUrl) {
-                photoContainer.innerHTML = `
-                    <img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" 
-                         onclick="window.open('${photoUrl}','_blank')">
-                `;
+            let foundRecord = null;
+
+            // Always fetch GitHub records.json first to get AWB + photoUrl
+            const cfg = JSON.parse(localStorage.getItem('ghTrackCfg') || '{}');
+            let githubRecords = [];
+
+            if (cfg.token && cfg.repo) {
+                try {
+                    const res = await fetch(
+                        `https://api.github.com/repos/${cfg.repo}/contents/records.json?ref=${cfg.branch || 'main'}&t=${Date.now()}`,
+                        { headers: { 'Authorization': 'token ' + cfg.token, 'Accept': 'application/vnd.github.v3+json' } }
+                    );
+                    if (res.ok) {
+                        const d = await res.json();
+                        const decoded = atob(d.content.replace(/\n/g, ''));
+                        githubRecords = decoded.trim() ? JSON.parse(decoded) : [];
+                    }
+                } catch(e) { console.error('GitHub records.json fetch error:', e); }
+            } else if (cfg.repo) {
+                try {
+                    const res = await fetch(`https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/records.json?t=${Date.now()}`);
+                    if (res.ok) {
+                        const text = await res.text();
+                        githubRecords = text.trim() ? JSON.parse(text) : [];
+                    }
+                } catch(e) {}
+            }
+
+            // Find matching GitHub record by last-5 phone digits
+            const ghMatch = githubRecords.find(r => phoneLast5Match(r.phone)) || null;
+
+            // Resolve AWB: prefer records.json match (most reliable source)
+            const resolvedAwb = (ghMatch && ghMatch.awb) || awb || '';
+
+            // Resolve photoUrl: prefer records.json, then localStorage, then images/ folder
+            let resolvedPhoto = (ghMatch && ghMatch.photoUrl) || null;
+
+            // 1. Check localStorage trackingData as fallback for photo
+            if (!resolvedPhoto) {
+                try {
+                    const allTracking = JSON.parse(localStorage.getItem('trackingData') || '{}');
+                    const matchedKey = Object.keys(allTracking).find(k => k.replace(/\D/g, '').slice(-5) === last5);
+                    if (matchedKey) {
+                        const t = allTracking[matchedKey];
+                        resolvedPhoto = t.photo || t.photoUrl || null;
+                    }
+                } catch(e) {}
+            }
+
+            // 2. If still no photo, scan GitHub images/ folder by last-5 in filename
+            if (!resolvedPhoto && cfg.token && cfg.repo && last5.length >= 4) {
+                try {
+                    const imgRes = await fetch(
+                        `https://api.github.com/repos/${cfg.repo}/contents/images?ref=${cfg.branch || 'main'}&t=${Date.now()}`,
+                        { headers: { 'Authorization': 'token ' + cfg.token, 'Accept': 'application/vnd.github.v3+json' } }
+                    );
+                    if (imgRes.ok) {
+                        const imgList = await imgRes.json();
+                        // Priority: filenames starting with last5_ (new format), then any containing last5
+                        const matches = imgList.filter(f => f.name.startsWith(last5 + '_') || f.name.includes('_' + last5 + '_'));
+                        matches.sort((a, b) => b.name.localeCompare(a.name)); // newest first
+                        const bestMatch = matches[0] || imgList.find(f => f.name.includes(last5));
+                        if (bestMatch) {
+                            resolvedPhoto = `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/images/${bestMatch.name}`;
+                        }
+                    }
+                } catch(e) { console.error('GitHub images/ folder fetch error:', e); }
+            }
+
+            // Build unified foundRecord
+            foundRecord = (resolvedPhoto || resolvedAwb || ghMatch) ? {
+                photoUrl: resolvedPhoto,
+                awb: resolvedAwb,
+                uploadedAt: ghMatch ? ghMatch.uploadedAt : null,
+                name: ghMatch ? ghMatch.name : ''
+            } : null;
+
+            // 3. Render result
+            if (foundRecord && (foundRecord.photoUrl || foundRecord.photo)) {
+                const photoUrl = foundRecord.photoUrl || foundRecord.photo;
+                photoContainer.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" onclick="window.open('${photoUrl}','_blank')" onerror="this.parentElement.innerHTML='<span>⚠️ Photo could not load.<br><small>Check GitHub repository.</small></span>'">`;
+
+                // Show timeline update if available
+                const timeline = document.getElementById('tracking-timeline');
+                if (timeline && foundRecord.uploadedAt) {
+                    timeline.innerHTML = `
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-label">Order Dispatched</span>
+                                <span class="timeline-time">Initial Scan</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item active">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-label">📸 Photo Uploaded</span>
+                                <span class="timeline-time">${new Date(foundRecord.uploadedAt).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Show live track section if AWB exists
+                const trackAwb = awb || foundRecord.awb || '';
+                if (liveWrap) {
+                    if (trackAwb) {
+                        liveWrap.innerHTML = `
+                            <div style="margin-top:8px;">
+                                <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;margin-bottom:8px;">🚚 Live Tracking: <strong style="color:#c084fc">${trackAwb}</strong></div>
+                                <div id="YQContainer-modal" style="width:100%;min-height:500px;border-radius:12px;overflow:hidden;background:white;"></div>
+                            </div>
+                        `;
+                        // Load the 17track script if not already present
+                        if (!document.getElementById('yq17script')) {
+                            const s = document.createElement('script');
+                            s.id = 'yq17script';
+                            s.src = 'https://www.17track.net/externalcall.js';
+                            s.onload = () => initYQModal(trackAwb);
+                            document.head.appendChild(s);
+                        } else {
+                            setTimeout(() => initYQModal(trackAwb), 200);
+                        }
+                    } else {
+                        liveWrap.innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">No AWB linked. Add via <a href="../uploads.html" target="_blank" style="color:#60a5fa;">Upload Tracking</a>.</p>`;
+                    }
+                }
             } else {
-                photoContainer.innerHTML = `
-                    <div style="text-align:center;padding:40px 20px;">
-                        <h2>📭</h2>
-                        <strong>No photo uploaded yet</strong><br>
-                        <a href="../uploads.html" target="_blank" style="color:#60a5fa;">Upload Tracking Photo →</a>
-                    </div>
-                `;
+                // No record found
+                photoContainer.innerHTML = `<div style="text-align:center;padding:20px;">
+                    <div style="font-size:2.5rem;margin-bottom:12px;">📭</div>
+                    <strong>No photo uploaded yet</strong><br>
+                    <small style="color:var(--text-muted);">Phone: ${phone}</small><br><br>
+                    <a href="../uploads.html" target="_blank" style="color:#60a5fa;font-size:0.85rem;">Upload tracking photo →</a>
+                </div>`;
+
+                // Still show live track if AWB is known
+                const trackAwb = awb || '';
+                if (liveWrap && trackAwb) {
+                    liveWrap.innerHTML = `
+                        <div style="margin-top:8px;">
+                            <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;margin-bottom:8px;">🚚 Live Tracking: <strong style="color:#c084fc">${trackAwb}</strong></div>
+                            <div id="YQContainer-modal" style="width:100%;min-height:500px;border-radius:12px;overflow:hidden;background:white;"></div>
+                        </div>
+                    `;
+                    if (!document.getElementById('yq17script')) {
+                        const s = document.createElement('script');
+                        s.id = 'yq17script';
+                        s.src = 'https://www.17track.net/externalcall.js';
+                        s.onload = () => initYQModal(trackAwb);
+                        document.head.appendChild(s);
+                    } else {
+                        setTimeout(() => initYQModal(trackAwb), 200);
+                    }
+                }
             }
         }
 
-        // Add spinner animation
-        const style = document.createElement('style');
-        style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }
-            .spinner { border: 4px solid rgba(255,255,255,0.1); border-top-color:#60a5fa; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin: auto; }`;
-        document.head.appendChild(style);
+        function initYQModal(awbNum) {
+            function tryInit() {
+                const container = document.getElementById('YQContainer-modal');
+                if (!container) return;
+                if (typeof YQV5 === 'undefined') { setTimeout(tryInit, 400); return; }
+                const num = awbNum.toUpperCase().trim();
+                let carrierCode = '0'; // auto-detect
+                if (num.startsWith('D') || num.startsWith('W')) carrierCode = '100069'; // DTDC
+                if (num.startsWith('356') || num.startsWith('19')) carrierCode = '100060'; // Delhivery
+                if (num.startsWith('5006') || num.startsWith('1003')) carrierCode = '100180'; // Trackon
+                container.innerHTML = '';
+                YQV5.trackSingle({
+                    YQ_ContainerId: 'YQContainer-modal',
+                    YQ_Height: 500,
+                    YQ_Lang: 'en',
+                    YQ_Num: awbNum,
+                    YQ_Fc: carrierCode
+                });
+            }
+            tryInit();
+        }
+
+        // CSS for the spinner inside modal
+        const modalStyle = document.createElement('style');
+        modalStyle.textContent = '@keyframes modalSpin { to { transform: rotate(360deg); } }';
+        document.head.appendChild(modalStyle);
     </script>
 </body>
+
 </html>
