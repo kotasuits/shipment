@@ -213,6 +213,33 @@
             color: white;
             text-decoration: underline;
         }
+
+        @media(max-width: 600px) {
+            body {
+                padding: 20px 15px;
+            }
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            .glass-card {
+                padding: 15px;
+            }
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                padding: 0 5px;
+            }
+            .nav-links a {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+                flex: 1 1 calc(50% - 15px);
+                text-align: center;
+                border: 1px solid rgba(52, 211, 153, 0.4);
+                border-radius: 8px;
+                background: rgba(52, 211, 153, 0.05);
+            }
+        }
     </style>
 </head>
 
