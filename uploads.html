@@ -738,12 +738,17 @@
     <script>
         const CFGKEY = 'ghTrackCfg';
         const RECKEY = 'trackingPhotos'; // local cache
+        const DEFAULT_GH_REPO = "kotasuits/shipment";
+        const DEFAULT_GH_BRANCH = "main";
         let pending = [];
         let cfg = {};
 
         // ── Config ──
         function loadConfig() {
             try { cfg = JSON.parse(localStorage.getItem(CFGKEY) || '{}'); } catch { cfg = {}; }
+            if (!cfg.repo) cfg.repo = DEFAULT_GH_REPO;
+            if (!cfg.branch) cfg.branch = DEFAULT_GH_BRANCH;
+            
             if (cfg.token) document.getElementById('cfg-token').value = cfg.token;
             if (cfg.repo) document.getElementById('cfg-repo').value = cfg.repo;
             document.getElementById('cfg-branch').value = cfg.branch || 'main';
