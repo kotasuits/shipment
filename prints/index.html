@@ -586,8 +586,11 @@
         // Wrapped in try/catch so a long address NEVER crashes the loop
         var qrDataUrl = '';
         try {
+          var uniqueId = 'PKG-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
           var qrText = (name + ' ' + phone + ' ' + pincode).trim();
           if (qrText.length < 3) qrText = plainText.substring(0, 100);
+          qrText = qrText + ' | ' + uniqueId;
+          
           var qrContainer = document.createElement('div');
           new QRCode(qrContainer, {
             text: qrText,
@@ -654,9 +657,14 @@
         var qrUrl = null;
 
         try {
+          var uniqueId = 'PKG-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+          var qrBase = (name + ' ' + phone + ' ' + pincode).trim();
+          if (qrBase.length < 3) qrBase = text.substring(0, 100);
+          var qrText = qrBase + ' | ' + uniqueId;
+
           var qDiv = document.createElement('div');
           new QRCode(qDiv, {
-            text: name + ' ' + phone + ' ' + pincode,
+            text: qrText,
             width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M
           });
           await new Promise(function (r) { setTimeout(r, 60); });

@@ -572,6 +572,12 @@
                 let dispName = row.name || row.Name || '';
                 let dispPhone = row.phone || row.Phone || '';
                 let dispAwb = row.awb || row.AWB || '';
+                let dispPkg = row.pkgId || row.PkgId || '';
+
+                if (!dispPkg && dispAddress) {
+                    const pkgMatch = dispAddress.match(/\bPKG-[A-Z0-9]+\b/i);
+                    if (pkgMatch) dispPkg = pkgMatch[0].toUpperCase();
+                }
 
                 // Fallback: If phone is empty, try to extract it from the address string
                 // Often Google Sheets dumps "Name Phone Pincode" all into the address field
@@ -608,12 +614,12 @@
 
                 // Store row data for the modal to look up later
                 const rowIdx = window._rowStore.length;
-                window._rowStore.push({ phone: dispPhone, timestamp: row.timestamp || '', awb: dispAwb });
+                window._rowStore.push({ phone: dispPhone, timestamp: row.timestamp || '', awb: dispAwb, pkgId: dispPkg });
 
                 tr.innerHTML = `
                     <td class="td-time">${displayDate}</td>
                     <td><span class="td-status">Dispatched</span></td>
-                    <td style="white-space: pre-wrap;">${dispAddress || 'N/A'}</td>
+                    <td style="white-space: pre-wrap;">${dispAddress || 'N/A'}${dispPkg ? '<br><small style="color:#60a5fa">📦 ' + dispPkg + '</small>' : ''}</td>
                     <td>
                         <button class="track-btn" onclick="openTracker(${rowIdx})">
                             <span>📍</span> Track
@@ -778,14 +784,14 @@
                     </div>
                     <div id="live-track-btn-wrap" style="margin-top:18px;"></div>
                     <div style="margin-top:12px;">
-                        <button class="refresh-btn" style="width:100%;justify-content:center;" onclick="loadTrackingData('${row.phone}','${row.awb}')">↻ Refresh Photo</button>
+                        <button class="refresh-btn" style="width:100%;justify-content:center;" onclick="loadTrackingData('${row.phone}','${row.awb}','${row.pkgId}')">↻ Refresh Photo</button>
                     </div>
                 </div>
             `;
 
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
-            loadTrackingData(row.phone, row.awb);
+            loadTrackingData(row.phone, row.awb, row.pkgId);
         }
 
         function closeTracker() {
@@ -796,7 +802,7 @@
             }
         }
 
-        async function loadTrackingData(phone, awb) {
+        async function loadTrackingData(phone, awb, pkgId) {
             const photoContainer = document.getElementById('modal-photo');
             const liveWrap = document.getElementById('live-track-btn-wrap');
             if (!photoContainer) return;
@@ -806,16 +812,20 @@
             const phoneLast5 = cleanPhone.slice(-5);
             const cleanAwb = (awb || '').replace(/\W/g, '');
             const awbLast5 = cleanAwb.slice(-5);
+            const pkgClean = (pkgId || '').trim();
+            const pkgLast5 = pkgClean.length > 4 ? pkgClean.slice(-5) : pkgClean;
             
-            // Primary lookup key is phone last 5. If missing, fallback to AWB last 5.
-            const lookupKey = phoneLast5 || awbLast5;
+            // Primary lookup key is pkgId last 5. Fallback to phone or awb.
+            const lookupKey = pkgLast5 || phoneLast5 || awbLast5;
 
-            // Helper: check if a record's phone or awb last-5 matches the lookupKey
-            function last5Match(recordPhone, recordAwb) {
+            // Helper: check if a record's phone or awb or pkgId last-5 matches the lookupKey
+            function last5Match(recordPhone, recordAwb, recordPkgId) {
                 if (!lookupKey || lookupKey.length < 4) return false; // Prevent empty matching everything
                 const rPhoneClean = (recordPhone || '').replace(/\D/g, '').slice(-5);
                 const rAwbClean = (recordAwb || '').replace(/\W/g, '').slice(-5);
-                return rPhoneClean === lookupKey || rAwbClean === lookupKey;
+                const rPkgClean = (recordPkgId || '').trim();
+                const rPkgLast5 = rPkgClean.length > 4 ? rPkgClean.slice(-5) : rPkgClean;
+                return (rPkgLast5 === lookupKey && rPkgLast5 !== '') || (rPhoneClean === lookupKey && rPhoneClean !== '') || (rAwbClean === lookupKey && rAwbClean !== '');
             }
 
             let foundRecord = null;
@@ -849,8 +859,8 @@
                 } catch(e) {}
             }
 
-            // Find matching GitHub record by last-5 phone or AWB digits
-            const ghMatch = githubRecords.find(r => last5Match(r.phone, r.awb)) || null;
+            // Find matching GitHub record by last-5 pkgId, phone or AWB digits
+            const ghMatch = githubRecords.find(r => last5Match(r.phone, r.awb, r.pkgId)) || null;
 
             // Resolve AWB: prefer records.json match (most reliable source)
             const resolvedAwb = (ghMatch && ghMatch.awb) || awb || '';
