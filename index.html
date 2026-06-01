@@ -446,13 +446,13 @@
 <body>
     <div class="ph">
         <h1>🔎 Search Tracking Photos</h1>
-        <p>Find your photo using the last 5 digits of your phone number.</p>
+        <p>Find your photo using the last 4 digits of your phone number or your Package ID (PKG-...).</p>
     </div>
 
     <!-- Search -->
     <div class="card">
         <div class="sbox"><span class="si">🔍</span><input type="text" id="si"
-                placeholder="Enter last 5 digits of your phone number..." autocomplete="off" autofocus
+                placeholder="Enter last 4 digits of phone or PKG ID..." autocomplete="off" autofocus
                 oninput="doSearch()"></div>
     </div>
 
@@ -465,7 +465,7 @@
             <div class="sb" id="init-st">
                 <div class="si2">🔎</div>
                 <h3>Start searching</h3>
-                <p>Type the last 5 digits of your phone number above.</p>
+                <p>Type the last 4 digits of your phone number or Package ID above.</p>
             </div>
             <div class="sb" id="empty-st" style="display:none;">
                 <div class="si2">😕</div>
@@ -570,11 +570,12 @@
             const q = raw.toLowerCase();
             if (!allRecords.length) { showState('norec-st'); return; }
 
-            // Require exactly/at least 5 characters for security
-            if (q.length < 5) { showState('init-st'); return; }
+            // Require exactly/at least 4 characters for security
+            if (q.length < 4) { showState('init-st'); return; }
 
             const matched = allRecords.filter(r =>
-                String(r.phone || '').endsWith(q)
+                String(r.phone || '').endsWith(q) ||
+                (r.pkgId && r.pkgId.toLowerCase().includes(q))
             );
 
             ['init-st', 'empty-st', 'norec-st', 'load-st'].forEach(s => document.getElementById(s).style.display = 'none');
@@ -595,6 +596,7 @@
         <div class="ml">
           <span class="chip">📍 ${hl(r.pincode, q)}</span>
           <span class="chip ph">📞 ${hl(r.phone, q)}</span>
+          ${r.pkgId ? `<span class="chip" style="background:rgba(236,72,153,0.1); border-color:rgba(236,72,153,0.2); color:#f472b6;">📦 ${hl(r.pkgId, q)}</span>` : ''}
           ${r.awb ? `<span class="chip" style="background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2); color:#34d399;">🚚 ${hl(r.awb, q)}</span>` : ''}
           <span class="chip dt">🕐 ${fmtDate(r.uploadedAt)}</span>
         </div>
