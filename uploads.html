@@ -5,9 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tracking Photo Upload</title>
+    <style id="auth-guard-style">body { display: none !important; }</style>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>enforceAuth();</script>
     <style>
         :root {
             --primary: #6366f1;
@@ -670,7 +677,11 @@
         <a href="prints/dispatched.html">📋 Dispatched</a>
         <a href="uploads.html" class="on">📸 Upload Tracking</a>
         <a href="search.html">🔎 Search Photos</a>
+        <a href="billing.html">🧾 Billing</a>
         <a href="gst-billing.html">🧾 GST Billing</a>
+        <a href="customers.html">👤 Customers</a>
+        <a href="online-excel.html">📊 Online Excel</a>
+        <a href="#" onclick="handleLogout(event)" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171; background: rgba(239, 68, 68, 0.08);">🚪 Logout</a>
     </nav>
 
     <div class="ph">
@@ -738,7 +749,7 @@
 
     <script>
         const CFGKEY = 'ghTrackCfg';
-        const DEFAULT_GH_REPO = "kotasuits/shipment";
+        const DEFAULT_GH_REPO = "ezyship/track";
         const DEFAULT_GH_BRANCH = "main";
         let pending = [];
         let cfg = {};
@@ -746,7 +757,10 @@
         // ── Config ──
         function loadConfig() {
             try { cfg = JSON.parse(localStorage.getItem(CFGKEY) || '{}'); } catch { cfg = {}; }
-            if (!cfg.repo) cfg.repo = DEFAULT_GH_REPO;
+            if (!cfg.repo) {
+                cfg.repo = "ezyship/track";
+                localStorage.setItem(CFGKEY, JSON.stringify(cfg));
+            }
             if (!cfg.branch) cfg.branch = DEFAULT_GH_BRANCH;
             
             if (cfg.token) document.getElementById('cfg-token').value = cfg.token;
@@ -768,7 +782,7 @@
 
             if (!cfg.repo.includes('/')) {
                 st.className = 'cfg-status bad';
-                st.innerHTML = '❌ <b>Invalid Repo Format</b><br>Please use "owner/repo" (e.g., kotasuits/shipment)';
+                st.innerHTML = '❌ <b>Invalid Repo Format</b><br>Please use "owner/repo" (e.g., ezyship/track)';
                 return;
             }
 
@@ -812,19 +826,54 @@
             catch { return null; }
         }
 
-        // Upload image file to GitHub
+        // Upload image file to Firebase Storage or fallback to GitHub
         async function uploadImage(filename, dataUrl) {
-            const base64 = dataUrl.split(',')[1];
-            const path = `images/${filename}`;
-            const sha = await getFileSHA(path);
-            const body = { message: `Add tracking photo: ${filename}`, content: base64, branch: cfg.branch };
-            if (sha) body.sha = sha;
-            await ghPut(`repos/${cfg.repo}/contents/${path}`, body);
-            return `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch}/${path}`;
+            // Prefer GitHub for photo storage if configured, to keep Firebase free
+            if (cfg.token && cfg.repo) {
+                try {
+                    const base64 = dataUrl.split(',')[1];
+                    const path = `images/${filename}`;
+                    const sha = await getFileSHA(path);
+                    const body = { message: `Add tracking photo: ${filename}`, content: base64, branch: cfg.branch };
+                    if (sha) body.sha = sha;
+                    await ghPut(`repos/${cfg.repo}/contents/${path}`, body);
+                    return `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch}/${path}`;
+                } catch (ge) {
+                    console.warn("GitHub upload failed, falling back to Firebase Storage:", ge);
+                }
+            }
+            if (firebaseStorage) {
+                try {
+                    const ref = firebaseStorage.ref().child('images/' + filename);
+                    const snapshot = await ref.putString(dataUrl, 'data_url');
+                    const downloadUrl = await snapshot.ref.getDownloadURL();
+                    return downloadUrl;
+                } catch (e) {
+                    console.error("Firebase Storage upload failed:", e);
+                    throw e;
+                }
+            }
+            throw new Error("Neither GitHub nor Firebase Storage is configured/accessible.");
         }
 
-        // records.json helpers
+        // records.json / Firebase DB helpers
         async function fetchRecordsJSON() {
+            if (firebaseDb) {
+                try {
+                    const snapshot = await firebaseDb.ref('records').once('value');
+                    const val = snapshot.val();
+                    // Firebase DB might return object/dictionary or array. Handles both.
+                    let records = [];
+                    if (val) {
+                        records = Array.isArray(val) ? val : Object.values(val);
+                    }
+                    // Filter out any null elements that can occur from array index gaps in Firebase
+                    records = records.filter(r => r !== null && r !== undefined);
+                    return { records, sha: null };
+                } catch (e) {
+                    console.error("Firebase DB read failed, falling back to GitHub:", e);
+                }
+            }
             try {
                 // Add cache buster to ensure latest SHA
                 const d = await ghGet(`repos/${cfg.repo}/contents/records.json?ref=${cfg.branch}&t=${Date.now()}`);
@@ -833,6 +882,14 @@
             } catch { return { records: [], sha: null }; }
         }
         async function pushRecordsJSON(records, sha) {
+            if (firebaseDb) {
+                try {
+                    await firebaseDb.ref('records').set(records);
+                    return;
+                } catch (e) {
+                    console.error("Firebase DB write failed, falling back to GitHub:", e);
+                }
+            }
             const content = btoa(unescape(encodeURIComponent(JSON.stringify(records, null, 2))));
             const body = { message: 'Update records.json', content, branch: cfg.branch };
             if (sha) body.sha = sha;
@@ -1025,7 +1082,7 @@
                 }
             });
             if (!ok) { toast('Need at least a Phone Number, AWB, or Package ID to link the photo', 'er'); return; }
-            if (!cfg.token || !cfg.repo) { toast('Save GitHub config first!', 'er'); return; }
+            if (!firebaseInitialized && (!cfg.token || !cfg.repo)) { toast('Save GitHub config first!', 'er'); return; }
 
             const btn = document.getElementById('ubtn');
             btn.disabled = true; btn.textContent = '⏳ Uploading…';
@@ -1076,7 +1133,7 @@
                 } catch (e) { toast('Failed to update database: ' + e.message, 'er'); }
             }
 
-            btn.disabled = false; btn.textContent = '☁️ Upload to GitHub';
+            btn.disabled = false; btn.textContent = firebaseInitialized ? '☁️ Upload' : '☁️ Upload to GitHub';
             toast(`Upload complete!`, 'ok');
             clearPending();
             loadRecords();
@@ -1085,11 +1142,14 @@
         // ── Load & Display Records ──
         async function loadRecords() {
             const list = document.getElementById('rlist');
-            list.innerHTML = '<div class="empty"><div class="ei">⏳</div><p>Loading from GitHub…</p></div>';
-            if (!cfg.repo) { list.innerHTML = '<div class="empty"><div class="ei">⚙️</div><p>Configure GitHub Repository first.</p></div>'; return; }
+            list.innerHTML = firebaseDb ? '<div class="empty"><div class="ei">⏳</div><p>Loading from Database…</p></div>' : '<div class="empty"><div class="ei">⏳</div><p>Loading from GitHub…</p></div>';
+            if (!firebaseDb && !cfg.repo) { list.innerHTML = '<div class="empty"><div class="ei">⚙️</div><p>Configure GitHub Repository first.</p></div>'; return; }
             try {
                 let records = [];
-                if (cfg.token) {
+                if (firebaseDb) {
+                    const { records: r } = await fetchRecordsJSON();
+                    records = r;
+                } else if (cfg.token) {
                     const { records: r } = await fetchRecordsJSON();
                     records = r;
                 } else {
@@ -1125,8 +1185,25 @@
                 const updated = records.filter(r => r.id !== id);
                 await pushRecordsJSON(updated, sha);
                 if (photoPath) {
-                    const fsha = await getFileSHA(photoPath);
-                    if (fsha) await ghDel(`repos/${cfg.repo}/contents/${photoPath}`, { message: 'Delete photo', sha: fsha, branch: cfg.branch });
+                    let deletedFromGh = false;
+                    if (cfg.token && cfg.repo) {
+                        try {
+                            const fsha = await getFileSHA(photoPath);
+                            if (fsha) {
+                                await ghDel(`repos/${cfg.repo}/contents/${photoPath}`, { message: 'Delete photo', sha: fsha, branch: cfg.branch });
+                                deletedFromGh = true;
+                            }
+                        } catch (ge) {
+                            console.warn("Failed to delete photo from GitHub:", ge);
+                        }
+                    }
+                    if (!deletedFromGh && firebaseStorage) {
+                        try {
+                            await firebaseStorage.ref().child(photoPath).delete();
+                        } catch (se) {
+                            console.warn("Firebase Storage photo delete failed:", se);
+                        }
+                    }
                 }
                 toast('Record deleted', 'in');
                 loadRecords();
