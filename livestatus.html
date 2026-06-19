@@ -170,13 +170,13 @@
                 const num = trackingNum.toUpperCase().trim();
 
                 // DTDC
-                if (num.startsWith('D')) {
+                if (num.startsWith('D')) || num.startsWith('7D')) {
                     document.getElementById('carrier-info').textContent = 'Carrier: DTDC';
                     return "100069";
                 }
 
                 // Trackon - Multiple prefixes
-                if (num.startsWith('5006') || num.startsWith('1003')) {
+                if (num.startsWith('5006') || num.startsWith('1003')) || num.startsWith('5007')) {
                     document.getElementById('carrier-info').textContent = 'Carrier: Trackon';
                     return "100180";
                 }
