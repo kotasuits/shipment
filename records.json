@@ -6926,5 +6926,45 @@
     "photoUrl": "https://raw.githubusercontent.com/kotasuits/shipment/main/images/70929_1784179953379_July-53.jpg",
     "photoPath": "images/70929_1784179953379_July-53.jpg",
     "uploadedAt": "2026-07-16T05:32:33.379Z"
+  },
+  {
+    "id": "mrn2ore6rmhu036uxx",
+    "name": "JULY-68",
+    "pincode": "879022",
+    "phone": "8790220760",
+    "awb": "7D134286512",
+    "photoUrl": "https://raw.githubusercontent.com/kotasuits/shipment/main/images/20760_1784180066853_JULY-68.jpg",
+    "photoPath": "images/20760_1784180066853_JULY-68.jpg",
+    "uploadedAt": "2026-07-16T05:34:26.846Z"
+  },
+  {
+    "id": "mrn2ore81chkgdsr2yz",
+    "name": "July-67",
+    "pincode": "xxxx",
+    "phone": "8790220760",
+    "awb": "7D134513449",
+    "photoUrl": "https://raw.githubusercontent.com/kotasuits/shipment/main/images/20760_1784180070113_July-67.jpg",
+    "photoPath": "images/20760_1784180070113_July-67.jpg",
+    "uploadedAt": "2026-07-16T05:34:30.113Z"
+  },
+  {
+    "id": "mrn2orebve3j066p00b",
+    "name": "JULY-79",
+    "pincode": "XXXXX",
+    "phone": "9947708926",
+    "awb": "7D134513621",
+    "photoUrl": "https://raw.githubusercontent.com/kotasuits/shipment/main/images/08926_1784180073077_JULY-79.jpg",
+    "photoPath": "images/08926_1784180073077_JULY-79.jpg",
+    "uploadedAt": "2026-07-16T05:34:33.076Z"
+  },
+  {
+    "id": "mrn2oreeotqnwwixrzk",
+    "name": "July-71",
+    "pincode": "XXXX",
+    "phone": "9921864383",
+    "awb": "7D134513663",
+    "photoUrl": "https://raw.githubusercontent.com/kotasuits/shipment/main/images/64383_1784180076264_July-71.jpg",
+    "photoPath": "images/64383_1784180076264_July-71.jpg",
+    "uploadedAt": "2026-07-16T05:34:36.264Z"
   }
 ]
