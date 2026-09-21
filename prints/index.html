@@ -205,11 +205,11 @@
 
     .addr-box {
       width: calc(33.33% - 14px);
-      min-width: 290px;
+      min-width: 310px;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 48px 16px 16px;
+      padding: 50px 16px 16px;
       position: relative;
       backdrop-filter: blur(16px);
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
@@ -243,9 +243,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 10px;
+      padding: 0 12px;
       border-bottom: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.03);
       border-top-left-radius: 14px;
       border-top-right-radius: 14px;
     }
@@ -257,7 +257,7 @@
       background: none;
       border: none;
       cursor: pointer;
-      padding: 2px 6px;
+      padding: 2px 8px;
       border-radius: 6px;
       transition: background 0.2s;
       flex-shrink: 0;
@@ -265,49 +265,6 @@
 
     .kdo-btn:hover {
       background: rgba(139, 92, 246, 0.2);
-    }
-
-    /* TRACKING BADGE DISPLAYED DIRECTLY ON THE BOX */
-    .trk-badge-container {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      padding: 2px 8px;
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-
-    .trk-badge-container:hover {
-      background: rgba(56, 189, 248, 0.2);
-      border-color: rgba(56, 189, 248, 0.6);
-    }
-
-    .trk-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      color: #38bdf8;
-      letter-spacing: 0.5px;
-      user-select: all;
-    }
-
-    .trk-regen-btn {
-      background: none;
-      border: none;
-      color: #7dd3fc;
-      cursor: pointer;
-      font-size: 11px;
-      line-height: 1;
-      padding: 1px;
-      opacity: 0.75;
-      transition: opacity 0.2s, transform 0.2s;
-    }
-
-    .trk-regen-btn:hover {
-      opacity: 1;
-      transform: rotate(90deg);
     }
 
     .box-actions {
@@ -348,6 +305,62 @@
       background: rgba(239, 68, 68, 0.22);
       color: #fca5a5;
       border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    /* CLEAR PROMINENT UNIQUE CODE BAR */
+    .box-code-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin-bottom: 10px;
+    }
+
+    .code-label-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .code-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .box-unique-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: 0.8px;
+      user-select: all;
+    }
+
+    .regen-btn {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #7dd3fc;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.2s;
+    }
+
+    .regen-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
+      border-color: rgba(56, 189, 248, 0.7);
+      color: white;
     }
 
     .editable {
@@ -508,9 +521,8 @@
 
   <script>
     /* ============================================================
-       UNIQUE TRACKING ID GENERATOR
-       Generates a fresh guaranteed unique ID
-       Format: TRK-YYMMDD-XXXX (e.g. TRK-260921-A9F3)
+       1. UNIQUE TRACKING ID GENERATOR
+       Generates a clean, unique tracking code: TRK-YYMMDD-XXXX
     ============================================================ */
     function generateUniqueId() {
       var d = new Date();
@@ -522,6 +534,33 @@
       return 'TRK-' + yymmdd + '-' + rand + timeMs;
     }
 
+    /* ============================================================
+       2. 100% SYNCHRONOUS & RELIABLE QR CODE GENERATOR
+       Generates PNG DataURL synchronously without timeouts
+    ============================================================ */
+    function generateQRDataUrl(text) {
+      if (!text) return '';
+      try {
+        var tempDiv = document.createElement('div');
+        new QRCode(tempDiv, {
+          text: String(text).trim(),
+          width: 256,
+          height: 256,
+          correctLevel: QRCode.CorrectLevel.M
+        });
+        var canvas = tempDiv.querySelector('canvas');
+        if (canvas) return canvas.toDataURL('image/png');
+        var img = tempDiv.querySelector('img');
+        if (img && img.src) return img.src;
+      } catch (e) {
+        console.error('QR Generation Error:', e);
+      }
+      return '';
+    }
+
+    /* ============================================================
+       3. ADD ADDRESS BOX (Displays Unique Code clearly on each card)
+    ============================================================ */
     function addBox() {
       var es = document.getElementById('emptyState');
       if (es) es.remove();
@@ -529,32 +568,34 @@
       var box = document.createElement('div');
       box.className = 'addr-box';
       
-      // Generate unique code for this address box
       var uid = generateUniqueId();
 
       box.innerHTML =
         '<div class="box-topbar">' +
           '<button class="kdo-btn" onclick="toggleKdo(this)">KDO</button>' +
-          '<div class="trk-badge-container" title="Unique Tracking Code for this Box">' +
-            '<span class="trk-badge">' + uid + '</span>' +
-            '<button class="trk-regen-btn" onclick="regenBoxId(this)" title="Generate new ID">&#8635;</button>' +
-          '</div>' +
           '<div class="box-actions">' +
             '<button class="lock-btn" onclick="toggleLock(this)">Lock</button>' +
             '<button class="del-btn"  onclick="removeBox(this)">X</button>' +
           '</div>' +
         '</div>' +
-        '<div class="editable" contenteditable="true" style="font-size:16px;font-family:Poppins,sans-serif;"></div>';
+        '<div class="box-code-bar">' +
+          '<div class="code-label-group">' +
+            '<span class="code-title">&#128230; Tracking ID:</span>' +
+            '<strong class="box-unique-code">' + uid + '</strong>' +
+          '</div>' +
+          '<button class="regen-btn" onclick="regenBoxId(this)" title="Generate new unique ID">&#8635; New ID</button>' +
+        '</div>' +
+        '<div class="editable" contenteditable="true" style="font-size:16px;font-family:Poppins,sans-serif;" placeholder="Paste recipient address here..."></div>';
 
       grid.appendChild(box);
       box.querySelector('.editable').focus();
     }
 
-    // Manual refresh of unique code for an individual box
+    // Refresh unique ID manually on any individual box
     function regenBoxId(btn) {
-      var badge = btn.closest('.box-topbar').querySelector('.trk-badge');
-      if (badge) {
-        badge.textContent = generateUniqueId();
+      var codeElem = btn.closest('.addr-box').querySelector('.box-unique-code');
+      if (codeElem) {
+        codeElem.textContent = generateUniqueId();
       }
     }
 
@@ -606,168 +647,175 @@
     }
 
     /* ============================================================
-       PRINT — Updates each box with a fresh unique ID on every click
-       so you can visibly see them change on screen and in print!
+       4. PRINT FUNCTION
+       - Prints the unique code shown on the box
+       - Embeds the unique code into the QR code
+       - Visible tracking ID printed directly under the QR code
+       - Updates each box with a fresh ID for the next print
     ============================================================ */
-    async function printAddresses() {
+    function printAddresses() {
       var boxes = document.querySelectorAll('.addr-box');
-      var fontFamily = document.getElementById('fontFamily').value;
-      var pageSize = document.getElementById('pageSize').value;
-
-      // Open popup first synchronously to avoid popup blockers
-      var win = window.open('', '', 'width=800,height=900');
-      if (!win) {
-        alert('Popup blocked! Allow popups for this site in the address bar, then try again.');
+      if (!boxes.length) {
+        alert('Please click "Add Box" to add an address first.');
         return;
       }
 
-      // Write header immediately
-      win.document.write(
-        '<html><head>' +
-        '<title>Print ' + pageSize + '</title>' +
-        '<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">' +
-        '<style>' +
-        '@page{size:' + pageSize + ' portrait;margin:10mm}' +
-        'body{font-family:' + fontFamily + ',sans-serif;margin:0;padding:0}' +
-        '.page{width:100%;height:100%;page-break-after:always;box-sizing:border-box;padding:20px;position:relative}' +
-        '.label{position:absolute;top:5px;right:10px;font-family:"Dancing Script",cursive;font-size:16px}' +
-        '.body-row{display:flex;justify-content:space-between;align-items:flex-start;padding-top:30px}' +
-        '.content{flex:1;font-size:16px;word-wrap:break-word;padding:10px}' +
-        '.qr-box{margin-left:15px;flex-shrink:0;display:flex;flex-direction:column;align-items:center}' +
-        '.qr-box img{display:block}' +
-        '.tracking-id{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:#1e293b;margin-top:5px;text-align:center;letter-spacing:0.5px}' +
-        '.note{position:absolute;bottom:20px;left:0;width:100%;text-align:center;font-size:15px;font-weight:bold}' +
-        '</style></head><body>'
-      );
+      var fontFamily = document.getElementById('fontFamily').value;
+      var pageSize = document.getElementById('pageSize').value;
 
-      // Write each page directly in the loop using async await
+      var pagesHtml = '';
+      var hasValidCard = false;
+
+      // Loop through all boxes
       for (var b = 0; b < boxes.length; b++) {
         var box = boxes[b];
         var editable = box.querySelector('.editable');
         var kdoBtn = box.querySelector('.kdo-btn');
-        var trkBadge = box.querySelector('.trk-badge');
-        var label = kdoBtn ? kdoBtn.textContent.trim() : '';
+        var codeElem = box.querySelector('.box-unique-code');
+        
+        var label = kdoBtn ? kdoBtn.textContent.trim() : 'KDO';
         var content = editable.innerHTML.trim();
         var plainText = editable.innerText.trim();
         var size = window.getComputedStyle(editable).fontSize;
         var align = window.getComputedStyle(editable).textAlign;
 
-        if (!content) continue;
-
-        // Generate a FRESH unique ID for this box on EVERY print click
-        var uniqueId = generateUniqueId();
-        // Update the badge ON SCREEN immediately so the user sees the change!
-        if (trkBadge) {
-          trkBadge.textContent = uniqueId;
+        // If card has content or user wants to test, proceed
+        if (!plainText) {
+          content = '<span style="color:#aaa;">[Empty Address Card]</span>';
         }
+        hasValidCard = true;
 
-        // Extract key fields using robust regex for Indian phone numbers
-        var phoneMatch = plainText.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b(\d{5}[\s-]?\d{5}|\d{10})\b/);
-        var phone = phoneMatch ? phoneMatch[1].replace(/\D/g, '') : '';
-        var pincode = (plainText.match(/\b\d{6}\b/) || [''])[0];
+        // Use the Unique ID currently displayed on this box
+        var currentId = codeElem ? codeElem.textContent.trim() : generateUniqueId();
+        if (!currentId) currentId = generateUniqueId();
 
-        // Generate QR code with unique tracking payload
-        var qrDataUrl = '';
-        try {
-          var qrText = uniqueId + (phone ? ' ' + phone : '') + (pincode ? ' ' + pincode : '');
-          var qrContainer = document.createElement('div');
-          new QRCode(qrContainer, {
-            text: qrText,
-            width: 256,
-            height: 256,
-            correctLevel: QRCode.CorrectLevel.M
-          });
-          
-          await new Promise(function(resolve) { setTimeout(resolve, 60); });
-          
-          var cv = qrContainer.querySelector('canvas');
-          if (cv) qrDataUrl = cv.toDataURL('image/png');
-        } catch (e) {
-          qrDataUrl = '';
-        }
+        // Generate QR code directly containing the unique tracking ID
+        var qrDataUrl = generateQRDataUrl(currentId);
 
-        // Write page with QR code and visible tracking ID underneath
-        win.document.write(
+        // Build printable page
+        pagesHtml +=
           '<div class="page">' +
-          '<div class="label">' + label + '</div>' +
-          '<div class="body-row">' +
-          '<div class="content" style="font-size:' + size + ';text-align:' + align + '">' + content + '</div>' +
-          (qrDataUrl ? 
-            '<div class="qr-box">' +
-              '<img src="' + qrDataUrl + '" width="100" height="100"/>' +
-              '<div class="tracking-id">' + uniqueId + '</div>' +
-            '</div>' : '') +
-          '</div>' +
-          '<div class="note"><em>&#9888;&#65039; Important : Unboxing video required for any claim.</em></div>' +
-          '</div>'
-        );
+            '<div class="label">' + label + '</div>' +
+            '<div class="body-row">' +
+              '<div class="content" style="font-size:' + size + ';text-align:' + align + '">' + content + '</div>' +
+              '<div class="qr-col">' +
+                (qrDataUrl ? '<img class="qr-code-img" src="' + qrDataUrl + '" width="115" height="115" alt="QR"/>' : '') +
+                '<div class="tracking-id-text">' + currentId + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="note"><em>&#9888;&#65039; Important : Unboxing video required for any claim.</em></div>' +
+          '</div>';
+
+        // AFTER assigning this ID to print, assign a FRESH new ID on screen for the next click!
+        if (codeElem) {
+          codeElem.textContent = generateUniqueId();
+        }
       }
 
-      // Close and trigger print dialog
-      win.document.write('</body></html>');
-      win.document.close();
-      
+      if (!hasValidCard) return;
+
+      // Complete print HTML document
+      var fullHtml =
+        '<!DOCTYPE html><html><head><title>Print ' + pageSize + '</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">' +
+        '<style>' +
+          '@page { size: ' + pageSize + ' portrait; margin: 10mm; }' +
+          'body { font-family: ' + fontFamily + ', sans-serif; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+          '.page { width: 100%; height: 100%; page-break-after: always; box-sizing: border-box; padding: 20px; position: relative; }' +
+          '.label { position: absolute; top: 5px; right: 10px; font-family: "Dancing Script", cursive; font-size: 18px; font-weight: bold; }' +
+          '.body-row { display: flex; justify-content: space-between; align-items: flex-start; padding-top: 30px; }' +
+          '.content { flex: 1; font-size: 16px; word-wrap: break-word; padding: 10px; line-height: 1.6; }' +
+          '.qr-col { margin-left: 15px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }' +
+          '.qr-code-img { display: block; border: 1px solid #000; padding: 3px; background: #fff; }' +
+          '.tracking-id-text { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; color: #000; margin-top: 6px; text-align: center; letter-spacing: 0.5px; }' +
+          '.note { position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center; font-size: 14px; font-weight: bold; }' +
+        '</style>' +
+        '</head><body>' +
+        pagesHtml +
+        '</body></html>';
+
+      // Use a hidden iframe for 100% reliable printing with zero popup blocker issues
+      var frame = document.getElementById('print_frame');
+      if (!frame) {
+        frame = document.createElement('iframe');
+        frame.id = 'print_frame';
+        frame.style.position = 'fixed';
+        frame.style.right = '0';
+        frame.style.bottom = '0';
+        frame.style.width = '0';
+        frame.style.height = '0';
+        frame.style.border = '0';
+        document.body.appendChild(frame);
+      }
+
+      var frameDoc = frame.contentWindow.document;
+      frameDoc.open();
+      frameDoc.write(fullHtml);
+      frameDoc.close();
+
       setTimeout(function() {
-        win.focus();
-        win.print();
-      }, 500);
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      }, 350);
     }
 
     /* ============================================================
-       PDF DOWNLOAD — Also updates unique ID on screen & PDF
+       5. PDF DOWNLOAD
     ============================================================ */
-    async function generatePDF() {
+    function generatePDF() {
+      var boxes = document.querySelectorAll('.addr-box');
+      if (!boxes.length) {
+        alert('Please add an address first.');
+        return;
+      }
+
       var jsPDFLib = window.jspdf;
-      var doc = new jsPDFLib.jsPDF({ format: document.getElementById('pageSize').value.toLowerCase() });
       var pageSize = document.getElementById('pageSize').value.toLowerCase();
+      var doc = new jsPDFLib.jsPDF({ format: pageSize });
 
       var colWidth = 180, maxH = 270, qrSz = 35, qrX = 160;
       if (pageSize === 'a5') { colWidth = 100; maxH = 190; qrSz = 30; qrX = 110; }
       if (pageSize === 'a6') { colWidth = 65; maxH = 130; qrSz = 25; qrX = 75; }
 
-      var boxes = document.querySelectorAll('.addr-box');
       var y = 10;
+      var hasPage = false;
 
       for (var b = 0; b < boxes.length; b++) {
         var box = boxes[b];
         var editable = box.querySelector('.editable');
-        var trkBadge = box.querySelector('.trk-badge');
+        var codeElem = box.querySelector('.box-unique-code');
         var text = editable ? editable.innerText.trim() : '';
-        if (!text) continue;
+        if (!text) text = '[Empty Address Card]';
 
-        // Generate fresh unique ID and update on screen
-        var uniqueId = generateUniqueId();
-        if (trkBadge) {
-          trkBadge.textContent = uniqueId;
-        }
+        var currentId = codeElem ? codeElem.textContent.trim() : generateUniqueId();
+        if (!currentId) currentId = generateUniqueId();
 
-        var phoneMatch = text.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b(\d{5}[\s-]?\d{5}|\d{10})\b/);
-        var phone = phoneMatch ? phoneMatch[1].replace(/\D/g, '') : '';
-        var pincode = (text.match(/\b\d{6}\b/) || [''])[0];
-
-        var qrUrl = null;
-        try {
-          var qDiv = document.createElement('div');
-          new QRCode(qDiv, {
-            text: uniqueId + (phone ? ' ' + phone : '') + (pincode ? ' ' + pincode : ''),
-            width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M
-          });
-          await new Promise(function (r) { setTimeout(r, 60); });
-          var cv = qDiv.querySelector('canvas');
-          if (cv) qrUrl = cv.toDataURL('image/png');
-        } catch (e) { qrUrl = null; }
+        var qrUrl = generateQRDataUrl(currentId);
 
         var lines = doc.splitTextToSize(text, colWidth);
-        var blockH = Math.max(lines.length * 6, qrSz) + 18;
+        var blockH = Math.max(lines.length * 6, qrSz) + 20;
 
-        if (y + blockH > maxH && y !== 10) { doc.addPage(); y = 10; }
+        if (y + blockH > maxH && hasPage) {
+          doc.addPage();
+          y = 10;
+        }
+
+        doc.setFontSize(11);
         doc.text(lines, 10, y + 5);
+
         if (qrUrl) {
           doc.addImage(qrUrl, 'PNG', qrX, y, qrSz, qrSz);
           doc.setFontSize(8);
-          doc.text(uniqueId, qrX, y + qrSz + 4);
+          doc.text(currentId, qrX, y + qrSz + 4);
         }
+
         y += blockH;
+        hasPage = true;
+
+        // Assign fresh ID for next time
+        if (codeElem) {
+          codeElem.textContent = generateUniqueId();
+        }
       }
 
       doc.save('addresses.pdf');
