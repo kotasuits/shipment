@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dispatched Log</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -248,7 +248,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 650px;
+            min-width: 700px;
         }
 
         th,
@@ -256,7 +256,7 @@
             padding: 14px 18px;
             text-align: left;
             border-bottom: 1px solid var(--border);
-            vertical-align: top;
+            vertical-align: middle;
         }
 
         th {
@@ -287,7 +287,7 @@
 
         .tracking-pill {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             font-weight: 700;
             color: #38bdf8;
             background: rgba(56, 189, 248, 0.12);
@@ -609,7 +609,7 @@
             <!-- Search input -->
             <div class="search-container">
                 <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" placeholder="Search by customer name, phone, address, or tracking ID..."
+                <input type="text" id="searchInput" placeholder="Search by tracking ID, customer name, phone, or address..."
                     oninput="handleSearch()">
             </div>
         </div>
@@ -790,13 +790,12 @@
             const results = [];
             for (let i = window._rawDataset.length - 1; i >= 0; i--) {
                 const row = window._rawDataset[i];
-                if (!row.timestamp && !row.name && !row.phone && !row.address) continue;
+                if (!row.timestamp && !row.name && !row.phone && !row.address && !row.trackingId) continue;
                 if (deletedOrders.includes(row.timestamp)) continue;
 
                 // Date filtering
                 if (cutoffStart) {
                     const rowDate = parseRowDate(row.timestamp);
-                    // If row has a valid date and doesn't match filter, skip
                     if (rowDate) {
                         if (rowDate < cutoffStart) continue;
                         if (cutoffEnd && rowDate > cutoffEnd) continue;
@@ -810,6 +809,7 @@
                         (row.phone || '') + ' ' +
                         (row.address || '') + ' ' +
                         (row.awb || '') + ' ' +
+                        (row.trackingId || row.qrCode || '') + ' ' +
                         (row.timestamp || '')
                     ).toLowerCase();
 
@@ -923,7 +923,6 @@
         function fetchData() {
             if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") return;
 
-            // Load cached data instantly
             const cached = localStorage.getItem('dispatchedCache');
             if (cached) {
                 try {
