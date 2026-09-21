@@ -5,9 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tracking Photo Upload</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- QR Code & Barcode Decoders -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
+
     <style>
         :root {
             --primary: #6366f1;
@@ -19,6 +23,7 @@
             --muted: #94a3b8;
             --bdr: rgba(255, 255, 255, .09);
             --ok: #10b981;
+            --warn: #f59e0b;
             --err: #ef4444;
         }
 
@@ -101,6 +106,7 @@
 
         .ph p {
             color: var(--muted);
+            font-size: 0.95rem;
         }
 
         .card {
@@ -233,7 +239,7 @@
         }
 
         .dz h3 {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 600;
             margin-bottom: 5px;
         }
@@ -243,56 +249,117 @@
             font-size: .88rem;
         }
 
+        .dz-badge {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.78rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
         /* Preview grid */
         #pgrid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 16px;
+            gap: 18px;
             margin-top: 20px;
         }
 
         .pc {
-            background: rgba(10, 15, 35, .75);
+            background: rgba(10, 15, 35, .82);
             border: 1px solid var(--bdr);
-            border-radius: 13px;
+            border-radius: 14px;
             overflow: hidden;
             position: relative;
             transition: transform .2s, box-shadow .2s;
+            display: flex;
+            flex-direction: column;
         }
 
         .pc:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, .4);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
         }
 
         .pc img {
             width: 100%;
-            height: 350px;
+            height: 320px;
             object-fit: contain;
-            background: #000;
+            background: #050811;
             display: block;
             cursor: pointer;
         }
 
         .pc .qr-status {
             position: absolute;
-            top: 7px;
-            left: 7px;
-            background: rgba(0, 0, 0, 0.6);
+            top: 9px;
+            left: 9px;
+            background: rgba(15, 23, 42, 0.88);
             color: #fff;
-            font-size: 0.7rem;
-            padding: 3px 8px;
-            border-radius: 12px;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 14px;
             font-weight: 600;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 2;
+            max-width: calc(100% - 60px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pc .qr-status.ok {
+            background: rgba(16, 185, 129, 0.9);
+            color: #ffffff;
+            border-color: #34d399;
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+        }
+
+        .pc .qr-status.scanning {
+            background: rgba(59, 130, 246, 0.9);
+            color: #ffffff;
+            border-color: #60a5fa;
+        }
+
+        .pc .qr-status.warn {
+            background: rgba(245, 158, 11, 0.9);
+            color: #ffffff;
+            border-color: #fcd34d;
+        }
+
+        .trk-detected-badge {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(34, 211, 238, 0.15));
+            border: 1px solid rgba(99, 102, 241, 0.45);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            color: #c7d2fe;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .trk-detected-badge strong {
+            font-family: 'JetBrains Mono', monospace;
+            color: #a5f3fc;
+            letter-spacing: 0.5px;
         }
 
         .pc .pb {
-            padding: 12px;
+            padding: 14px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .fg {
-            margin-bottom: 9px;
+            margin-bottom: 10px;
         }
 
         .fg label {
@@ -309,50 +376,39 @@
             width: 100%;
             background: var(--inp);
             border: 1px solid var(--bdr);
-            border-radius: 7px;
-            padding: 7px 9px;
+            border-radius: 8px;
+            padding: 8px 10px;
             color: var(--txt);
-            font-size: .84rem;
+            font-size: .86rem;
             outline: none;
             transition: border-color .2s;
         }
 
-        .fg input:focus,
-        .fg select:focus {
+        .fg input:focus {
             border-color: var(--primary);
         }
 
-        .fg select {
-            width: 100%;
-            background: var(--inp);
-            border: 1px solid var(--bdr);
-            border-radius: 7px;
-            padding: 7px 9px;
-            color: var(--txt);
-            font-size: .84rem;
-            outline: none;
-            transition: border-color .2s;
-            appearance: none;
-            cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: calc(100% - 10px) center;
+        .fg input.highlight-auto {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.08);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: #34d399;
         }
 
-        .fg input.err,
-        .fg select.err {
+        .fg input.err {
             border-color: var(--err);
         }
 
         .rm {
             position: absolute;
-            top: 7px;
-            right: 7px;
+            top: 9px;
+            right: 9px;
             background: rgba(239, 68, 68, .85);
             border: none;
             border-radius: 50%;
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             color: #fff;
             font-size: .85rem;
             cursor: pointer;
@@ -360,6 +416,7 @@
             align-items: center;
             justify-content: center;
             transition: background .2s;
+            z-index: 2;
         }
 
         .rm:hover {
@@ -391,30 +448,22 @@
             flex-shrink: 0;
         }
 
-        .up-item.done .up-icon::after {
-            content: '✅';
-        }
-
-        .up-item.fail .up-icon::after {
-            content: '❌';
-        }
-
-        .up-item.going .up-icon::after {
-            content: '⏳';
-        }
+        .up-item.done .up-icon::after { content: '✅'; }
+        .up-item.fail .up-icon::after { content: '❌'; }
+        .up-item.going .up-icon::after { content: '⏳'; }
 
         /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            padding: 11px 26px;
+            padding: 11px 24px;
             border-radius: 10px;
             border: none;
-            font-size: .95rem;
+            font-size: .92rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all .25s;
+            transition: all .2s;
         }
 
         .btn-p {
@@ -469,11 +518,11 @@
         .rrow {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             background: rgba(10, 15, 35, .6);
             border: 1px solid var(--bdr);
-            border-radius: 11px;
-            padding: 11px 15px;
+            border-radius: 12px;
+            padding: 12px 16px;
             transition: background .2s;
         }
 
@@ -482,8 +531,8 @@
         }
 
         .rthumb {
-            width: 52px;
-            height: 52px;
+            width: 58px;
+            height: 58px;
             border-radius: 9px;
             object-fit: cover;
             flex-shrink: 0;
@@ -496,27 +545,47 @@
             min-width: 0;
         }
 
-        .rinfo strong {
-            display: block;
-            font-size: .92rem;
+        .rinfo-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+
+        .rinfo-top strong {
+            font-size: .95rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
+        .trk-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
         .rmeta {
-            font-size: .78rem;
+            font-size: .8rem;
             color: var(--muted);
-            margin-top: 2px;
         }
 
         .rdel {
             background: none;
             border: none;
             color: #f87171;
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            padding: 4px 7px;
+            padding: 6px 8px;
             border-radius: 6px;
             transition: background .2s;
         }
@@ -557,20 +626,9 @@
             transform: translateY(0);
         }
 
-        #toast.ok {
-            background: rgba(16, 185, 129, .92);
-            color: #fff;
-        }
-
-        #toast.er {
-            background: rgba(239, 68, 68, .92);
-            color: #fff;
-        }
-
-        #toast.in {
-            background: rgba(99, 102, 241, .92);
-            color: #fff;
-        }
+        #toast.ok { background: rgba(16, 185, 129, .92); color: #fff; }
+        #toast.er { background: rgba(239, 68, 68, .92); color: #fff; }
+        #toast.in { background: rgba(99, 102, 241, .92); color: #fff; }
 
         .empty {
             text-align: center;
@@ -594,9 +652,7 @@
             justify-content: center;
         }
 
-        #imod.open {
-            display: flex;
-        }
+        #imod.open { display: flex; }
 
         #imod img {
             max-width: 90vw;
@@ -649,15 +705,7 @@
             }
 
             .pc img {
-                height: 350px;
-                object-fit: contain;
-                background: #000;
-            }
-        }
-
-        @media(max-width: 400px) {
-            #pgrid {
-                grid-template-columns: 1fr;
+                height: 320px;
             }
         }
     </style>
@@ -674,18 +722,15 @@
 
     <div class="ph">
         <h1>📸 Tracking Photo Upload</h1>
-        <p>Upload delivery photos to GitHub — searchable by last 5 digits of phone number.</p>
+        <p>Auto-detects Unique QR Code (<code>TRK-...</code>) from parcel photos and saves to GitHub</p>
     </div>
 
     <!-- GitHub Config -->
     <div class="card">
-        <div class="stitle">⚙️ GitHub Configuration <span
-                style="font-size:.78rem;color:var(--muted);font-weight:400;">(saved locally)</span></div>
+        <div class="stitle">⚙️ GitHub Configuration <span style="font-size:.78rem;color:var(--muted);font-weight:400;">(saved locally)</span></div>
         <div class="cfg-grid">
-            <div class="fld"><label>GitHub Token (PAT)</label><input type="password" id="cfg-token"
-                    placeholder="ghp_xxxxxxxxxxxx"></div>
-            <div class="fld"><label>Repository (owner/repo)</label><input type="text" id="cfg-repo"
-                    placeholder="yourname/tracking-photos"></div>
+            <div class="fld"><label>GitHub Token (PAT)</label><input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx"></div>
+            <div class="fld"><label>Repository (owner/repo)</label><input type="text" id="cfg-repo" placeholder="kotasuits/shipment"></div>
             <div class="fld"><label>Branch</label><input type="text" id="cfg-branch" placeholder="main"></div>
             <div class="fld" style="display:flex;align-items:flex-end;gap:10px;">
                 <button class="btn btn-s" style="flex:1;" onclick="saveConfig()">💾 Save Config</button>
@@ -693,8 +738,7 @@
             </div>
         </div>
         <div id="cfg-status" class="cfg-status"></div>
-        <p style="margin-top:12px;font-size:.78rem;color:var(--muted);">⚠️ Token needs <strong>repo</strong> scope. Your
-            token is stored only in this browser (localStorage).</p>
+        <p style="margin-top:12px;font-size:.78rem;color:var(--muted);">⚠️ Token needs <strong>repo</strong> scope. Token is stored securely in this browser (localStorage).</p>
     </div>
 
     <!-- Upload -->
@@ -703,8 +747,9 @@
         <div class="dz" id="dz">
             <input type="file" id="fi" accept="image/*" multiple>
             <div class="dz-icon">🖼️</div>
-            <h3>Drop photos here or click to browse</h3>
-            <p>JPG, PNG, WEBP — multiple files supported</p>
+            <h3>Drop parcel photos here or click to browse</h3>
+            <p>JPG, PNG, WEBP — camera photos & batch uploads supported</p>
+            <span class="dz-badge">⚡ Automatic QR Detection Enabled</span>
         </div>
         <div id="pgrid"></div>
         <div class="abar" id="abar" style="display:none;">
@@ -717,10 +762,13 @@
 
     <!-- Records -->
     <div class="card">
-        <div class="stitle">📦 Uploaded Records <button class="btn btn-s"
-                style="padding:5px 14px;font-size:.8rem;margin-left:auto;" onclick="loadRecords()">↻ Refresh</button>
+        <div class="stitle">📦 Uploaded Records 
+            <button class="btn btn-s" style="padding:5px 14px;font-size:.8rem;margin-left:auto;" onclick="loadRecords()">↻ Refresh</button>
         </div>
         <div id="sbar" style="margin-bottom:14px;"></div>
+        <div class="fld" style="margin-bottom:14px;">
+            <input type="text" id="rec-search" placeholder="🔍 Search uploaded records by Tracking ID (TRK-...), Phone, Name, or AWB..." oninput="filterRecords(this.value)">
+        </div>
         <div class="rlist" id="rlist">
             <div class="empty">
                 <div class="ei">📭</div>
@@ -737,11 +785,12 @@
 
     <script>
         const CFGKEY = 'ghTrackCfg';
-        const RECKEY = 'trackingPhotos'; // local cache
+        const RECKEY = 'trackingPhotos';
         const DEFAULT_GH_REPO = "kotasuits/shipment";
         const DEFAULT_GH_BRANCH = "main";
         let pending = [];
         let cfg = {};
+        let cachedRecords = [];
 
         // ── Config ──
         function loadConfig() {
@@ -753,6 +802,7 @@
             if (cfg.repo) document.getElementById('cfg-repo').value = cfg.repo;
             document.getElementById('cfg-branch').value = cfg.branch || 'main';
         }
+
         function saveConfig() {
             cfg.token = document.getElementById('cfg-token').value.trim();
             cfg.repo = document.getElementById('cfg-repo').value.trim();
@@ -761,6 +811,7 @@
             localStorage.setItem(CFGKEY, JSON.stringify(cfg));
             toast('Config saved!', 'ok');
         }
+
         async function testConfig() {
             saveConfig();
             const st = document.getElementById('cfg-status');
@@ -768,7 +819,7 @@
 
             if (!cfg.repo.includes('/')) {
                 st.className = 'cfg-status bad';
-                st.innerHTML = '❌ <b>Invalid Repo Format</b><br>Please use "owner/repo" (e.g., thecraftyriz/thecraftyriz)';
+                st.innerHTML = '❌ <b>Invalid Repo Format</b><br>Please use "owner/repo" (e.g., kotasuits/shipment)';
                 return;
             }
 
@@ -790,17 +841,26 @@
         }
 
         // ── GitHub API ──
-        function ghHeaders() { return { 'Authorization': 'token ' + cfg.token, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' }; }
+        function ghHeaders() {
+            return {
+                'Authorization': 'token ' + cfg.token,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json'
+            };
+        }
+
         async function ghGet(path) {
             const r = await fetch(`https://api.github.com/${path}`, { headers: ghHeaders() });
             if (!r.ok) { const e = await r.json(); throw new Error(e.message || r.status); }
             return r.json();
         }
+
         async function ghPut(path, body) {
             const r = await fetch(`https://api.github.com/${path}`, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
             if (!r.ok) { const e = await r.json(); throw new Error(e.message || r.status); }
             return r.json();
         }
+
         async function ghDel(path, body) {
             const r = await fetch(`https://api.github.com/${path}`, { method: 'DELETE', headers: ghHeaders(), body: JSON.stringify(body) });
             if (!r.ok) { const e = await r.json(); throw new Error(e.message || r.status); }
@@ -808,8 +868,12 @@
         }
 
         async function getFileSHA(path) {
-            try { const d = await ghGet(`repos/${cfg.repo}/contents/${path}?ref=${cfg.branch}`); return d.sha; }
-            catch { return null; }
+            try {
+                const d = await ghGet(`repos/${cfg.repo}/contents/${path}?ref=${cfg.branch}`);
+                return d.sha;
+            } catch {
+                return null;
+            }
         }
 
         // Upload image file to GitHub
@@ -826,12 +890,14 @@
         // records.json helpers
         async function fetchRecordsJSON() {
             try {
-                // Add cache buster to ensure latest SHA
                 const d = await ghGet(`repos/${cfg.repo}/contents/records.json?ref=${cfg.branch}&t=${Date.now()}`);
                 const decoded = atob(d.content.replace(/\n/g, ''));
                 return { records: JSON.parse(decoded), sha: d.sha };
-            } catch { return { records: [], sha: null }; }
+            } catch {
+                return { records: [], sha: null };
+            }
         }
+
         async function pushRecordsJSON(records, sha) {
             const content = btoa(unescape(encodeURIComponent(JSON.stringify(records, null, 2))));
             const body = { message: 'Update records.json', content, branch: cfg.branch };
@@ -851,85 +917,283 @@
 
         function handleFiles(files) {
             const imgs = Array.from(files).filter(f => f.type.startsWith('image/'));
-            if (!imgs.length) { toast('No valid images', 'er'); return; }
+            if (!imgs.length) { toast('No valid images selected', 'er'); return; }
+
             imgs.forEach(f => {
                 const r = new FileReader();
                 r.onload = e => {
                     const dataUrl = e.target.result;
                     const pid = uid();
-                    const pObj = { id: pid, dataUrl, file: f, name: '', pincode: '', phone: '', awb: '', status: 'Scanning...' };
+                    const pObj = {
+                        id: pid,
+                        dataUrl,
+                        file: f,
+                        trackingId: '',
+                        awb: '',
+                        courierAwb: '',
+                        name: '',
+                        pincode: '',
+                        phone: '',
+                        status: '⏳ Scanning QR code...'
+                    };
                     pending.push(pObj);
                     renderGrid();
 
-                    // Auto-fetch via Barcode / QR Code
-                    const img = new Image();
-                    img.onload = async () => {
-                        const cvs = document.createElement('canvas');
-                        const ctx = cvs.getContext('2d');
-                        let w = img.width, h = img.height;
-                        if (w > 1200) { h *= 1200 / w; w = 1200; }
-                        cvs.width = w; cvs.height = h;
-                        ctx.drawImage(img, 0, 0, w, h);
-
-                        let detected = false;
-
-                        // 1. Try Native BarcodeDetector API (provided by user)
-                        if ('BarcodeDetector' in window) {
-                            try {
-                                const detector = new BarcodeDetector({
-                                    formats: ["code_128", "code_39", "code_93", "ean_13", "ean_8", "upc_a", "upc_e", "qr_code", "pdf417", "itf", "codabar"]
-                                });
-                                const barcodes = await detector.detect(img);
-                                if (barcodes.length > 0) {
-                                    barcodes.forEach(b => processDetectedText(b.rawValue, pObj));
-                                    pObj.status = `✅ Found ${barcodes.length} code(s)`;
-                                    detected = true;
-                                }
-                            } catch (e) { console.error("Native detector error:", e); }
-                        }
-
-                        // 2. Fallback to jsQR for QR codes if native failed or to be thorough
-                        if (!detected) {
-                            const imgData = ctx.getImageData(0, 0, w, h);
-                            const code = jsQR(imgData.data, w, h, { inversionAttempts: "dontInvert" });
-                            if (code && code.data) {
-                                processDetectedText(code.data, pObj);
-                                pObj.status = '✅ QR Found';
-                                detected = true;
-                            }
-                        }
-
-                        if (!detected) pObj.status = '⚠️ No codes found';
-                        renderGrid();
-                    };
-                    img.src = dataUrl;
+                    // Start high-accuracy QR & Barcode scan
+                    scanParcelPhoto(pObj);
                 };
                 r.readAsDataURL(f);
             });
         }
-        function processDetectedText(text, pObj) {
-            if (!text) return;
-            text = text.trim();
 
-            let phMatch = text.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b(\d{5}[\s-]?\d{5}|\d{10})\b/);
-            let pinMatch = text.match(/\b(\d{6})\b/);
+        /* ============================================================
+           HIGH ACCURACY MULTI-PASS QR & BARCODE DETECTOR
+        ============================================================ */
+        async function scanParcelPhoto(pObj) {
+            const img = new Image();
+            img.onload = async () => {
+                const detectedCodes = [];
+                const seenText = new Set();
 
-            if (phMatch && !pObj.phone) pObj.phone = phMatch[1].replace(/\s/g, '').slice(-10);
-            if (pinMatch && !pObj.pincode) pObj.pincode = pinMatch[1];
+                function recordCode(rawVal, type = 'qr') {
+                    if (!rawVal) return;
+                    const str = String(rawVal).trim();
+                    if (!str || seenText.has(str)) return;
+                    seenText.add(str);
+                    detectedCodes.push({ text: str, type: type });
+                }
 
-            const digitsOnly = text.replace(/\D/g, '');
-            const isOnlyPhone = phMatch && text.replace(/(?:\+|00)?91|\D/g, '') === digitsOnly && (digitsOnly.length >= 10);
-            const isOnlyPin = pinMatch && digitsOnly.length === 6;
+                // Helper: create canvas at specified scale
+                function drawToCanvas(maxDim) {
+                    const cvs = document.createElement('canvas');
+                    const ctx = cvs.getContext('2d', { willReadFrequently: true });
+                    let w = img.naturalWidth || img.width;
+                    let h = img.naturalHeight || img.height;
+                    if (maxDim && (w > maxDim || h > maxDim)) {
+                        if (w > h) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+                    }
+                    cvs.width = w;
+                    cvs.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    return { cvs, ctx, w, h };
+                }
 
-            if (!isOnlyPhone && !isOnlyPin && text.length > 5 && !pObj.awb) pObj.awb = text.trim();
+                // --- PASS 1: Native BarcodeDetector (fastest on modern Chrome/Android) ---
+                if ('BarcodeDetector' in window) {
+                    try {
+                        const formats = [
+                            'qr_code', 'code_128', 'code_39', 'code_93',
+                            'ean_13', 'ean_8', 'upc_a', 'upc_e', 'pdf417',
+                            'itf', 'data_matrix'
+                        ];
+                        const detector = new BarcodeDetector({ formats });
+                        
+                        // Try native detector on image directly
+                        const barcodes = await detector.detect(img);
+                        if (barcodes && barcodes.length) {
+                            barcodes.forEach(b => recordCode(b.rawValue, b.format));
+                        }
+                    } catch (e) {
+                        console.warn('Native BarcodeDetector pass error:', e);
+                    }
+                }
 
-            if (phMatch || pinMatch) {
-                let n = text;
-                if (phMatch) n = n.replace(phMatch[0], '');
-                if (pinMatch) n = n.replace(pinMatch[0], '');
-                n = n.replace(/[|\-_:;]+/g, ' ').trim();
-                if (n && n.length > 2 && n.length < 30 && !pObj.name) pObj.name = n;
+                // --- PASS 2: jsQR at High Resolution (Max 2048px) ---
+                if (typeof jsQR !== 'undefined') {
+                    try {
+                        const { cvs, ctx, w, h } = drawToCanvas(2048);
+                        const imgData = ctx.getImageData(0, 0, w, h);
+                        // attemptBoth tests both normal and inverted QR codes
+                        const qr = jsQR(imgData.data, w, h, { inversionAttempts: 'attemptBoth' });
+                        if (qr && qr.data) {
+                            recordCode(qr.data, 'qr');
+                        }
+                    } catch (e) {
+                        console.warn('jsQR High-res pass error:', e);
+                    }
+                }
+
+                // --- PASS 3: ZXing MultiFormatReader (Superior binarization & skew resistance) ---
+                if (typeof ZXing !== 'undefined') {
+                    try {
+                        const hints = new Map();
+                        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+                        const reader = new ZXing.BrowserMultiFormatReader(hints);
+
+                        // Try decoding directly from HTMLImageElement
+                        try {
+                            const zxRes = await reader.decodeFromImageElement(img);
+                            if (zxRes && zxRes.getText()) {
+                                recordCode(zxRes.getText(), 'zxing');
+                            }
+                        } catch (err1) {
+                            // Try decoding from 1600px canvas
+                            try {
+                                const { cvs } = drawToCanvas(1600);
+                                const zxRes2 = await reader.decodeFromCanvas(cvs);
+                                if (zxRes2 && zxRes2.getText()) {
+                                    recordCode(zxRes2.getText(), 'zxing');
+                                }
+                            } catch (err2) {}
+                        }
+                    } catch (e) {
+                        console.warn('ZXing pass error:', e);
+                    }
+                }
+
+                // --- PASS 4: Contrast Stretching / Adaptive Grayscale (for low contrast or glare) ---
+                const hasTrk = detectedCodes.some(c => /TRK-[A-Za-z0-9-]+/i.test(c.text));
+                if (!hasTrk && typeof jsQR !== 'undefined') {
+                    try {
+                        const { cvs, ctx, w, h } = drawToCanvas(1200);
+                        const imgData = ctx.getImageData(0, 0, w, h);
+                        const d = imgData.data;
+
+                        let min = 255, max = 0;
+                        for (let i = 0; i < d.length; i += 4) {
+                            const gray = (d[i] * 299 + d[i+1] * 587 + d[i+2] * 114) / 1000;
+                            if (gray < min) min = gray;
+                            if (gray > max) max = gray;
+                        }
+                        const range = (max - min) || 1;
+                        for (let i = 0; i < d.length; i += 4) {
+                            const gray = (d[i] * 299 + d[i+1] * 587 + d[i+2] * 114) / 1000;
+                            const stretched = Math.min(255, Math.max(0, ((gray - min) / range) * 255));
+                            d[i] = stretched;
+                            d[i+1] = stretched;
+                            d[i+2] = stretched;
+                        }
+                        ctx.putImageData(imgData, 0, 0);
+
+                        const qr = jsQR(d, w, h, { inversionAttempts: 'attemptBoth' });
+                        if (qr && qr.data) {
+                            recordCode(qr.data, 'qr');
+                        }
+                    } catch (e) {
+                        console.warn('Pass 4 contrast stretching error:', e);
+                    }
+                }
+
+                // Process all collected codes into parcel record
+                processDetectedCodes(detectedCodes, pObj);
+            };
+            img.src = pObj.dataUrl;
+        }
+
+        /* ============================================================
+           INTELLIGENT PARSING: Tracking ID, Phone, Pincode, Name
+        ============================================================ */
+        function processDetectedCodes(codesList, pObj) {
+            if (!codesList || !codesList.length) {
+                pObj.status = '⚠️ No QR code found (enter below)';
+                syncDOM(pObj);
+                return;
             }
+
+            for (const item of codesList) {
+                const text = (item.text || '').trim();
+                if (!text) continue;
+
+                // 1. Check for JSON format
+                try {
+                    if (text.startsWith('{') && text.endsWith('}')) {
+                        const parsed = JSON.parse(text);
+                        if (parsed.trackingId || parsed.id || parsed.qrCode || parsed.trk) {
+                            pObj.trackingId = String(parsed.trackingId || parsed.id || parsed.qrCode || parsed.trk).trim().toUpperCase();
+                        }
+                        if ((parsed.phone || parsed.mobile) && !pObj.phone) {
+                            pObj.phone = String(parsed.phone || parsed.mobile).replace(/\D/g, '').slice(-10);
+                        }
+                        if ((parsed.pincode || parsed.pin) && !pObj.pincode) {
+                            pObj.pincode = String(parsed.pincode || parsed.pin).trim();
+                        }
+                        if ((parsed.name || parsed.customer) && !pObj.name) {
+                            pObj.name = String(parsed.name || parsed.customer).trim();
+                        }
+                        if (parsed.awb && !pObj.awb) {
+                            pObj.awb = String(parsed.awb).trim();
+                        }
+                        continue;
+                    }
+                } catch (e) {}
+
+                // 2. Extract Unique Tracking ID: TRK-YYMMDD-XXXX
+                const trkMatch = text.match(/\b(TRK-[A-Za-z0-9-]+)\b/i);
+                if (trkMatch && !pObj.trackingId) {
+                    pObj.trackingId = trkMatch[1].toUpperCase();
+                }
+
+                // 3. Extract Courier AWB (DTDC, Delhivery, Trackon)
+                const dtdcMatch = text.match(/\b([DWXU]\d{8,9})\b/i);
+                const delhMatch = text.match(/\b(35\d{10,12}|19\d{10,12})\b/);
+                const trackonMatch = text.match(/\b(5006\d{6,8}|1003\d{6,8})\b/);
+                if (dtdcMatch && !pObj.courierAwb) pObj.courierAwb = dtdcMatch[1].toUpperCase();
+                else if (delhMatch && !pObj.courierAwb) pObj.courierAwb = delhMatch[1];
+                else if (trackonMatch && !pObj.courierAwb) pObj.courierAwb = trackonMatch[1];
+
+                // 4. Extract Indian Phone Number (from text excluding TRK code)
+                const textForDetails = text.replace(/TRK-[A-Za-z0-9-]+/gi, '');
+                const phMatch = textForDetails.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b([6-9]\d{4}[\s-]?\d{5}|[6-9]\d{9})\b/);
+                if (phMatch && !pObj.phone) {
+                    pObj.phone = phMatch[1].replace(/\D/g, '').slice(-10);
+                }
+
+                // 5. Extract 6-digit Pincode (prioritize explicit PIN label, otherwise 6 digits)
+                let pinMatch = textForDetails.match(/(?:pin|pincode|zip|code)[\s:-]*\b([1-9]\d{5})\b/i);
+                if (!pinMatch) {
+                    pinMatch = textForDetails.match(/\b([1-9]\d{5})\b/);
+                }
+                if (pinMatch && !pObj.pincode) {
+                    pObj.pincode = pinMatch[1];
+                }
+
+                // 6. Name extraction from multiline text
+                if (text.includes('\n') && !pObj.name) {
+                    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                    for (const line of lines) {
+                        if (/TRK-/i.test(line)) continue;
+                        if (/\d{5,}/.test(line)) continue;
+                        if (/^(to|from|name|customer|address|ship to)[\s:]/i.test(line)) {
+                            pObj.name = line.replace(/^(to|from|name|customer|address|ship to)[\s:]*/i, '').trim();
+                            break;
+                        } else if (line.length >= 3 && line.length <= 35 && !/[0-9]/.test(line)) {
+                            pObj.name = line;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Sync Primary AWB / Tracking ID
+            if (!pObj.awb) {
+                pObj.awb = pObj.trackingId || pObj.courierAwb || '';
+            }
+
+            // Fallback: If no TRK or courier AWB found, but raw text exists
+            if (!pObj.trackingId && !pObj.awb && codesList.length) {
+                const first = codesList[0].text;
+                if (first.length >= 6 && first.length <= 40 && !first.includes('\n')) {
+                    pObj.awb = first;
+                }
+            }
+
+            // Status message
+            if (pObj.trackingId) {
+                pObj.status = `✅ QR: ${pObj.trackingId}`;
+            } else if (pObj.courierAwb) {
+                pObj.status = `✅ Barcode: ${pObj.courierAwb}`;
+            } else if (pObj.awb) {
+                pObj.status = `✅ Code: ${pObj.awb.slice(0, 16)}`;
+            } else {
+                pObj.status = `⚠️ Code detected (unrecognized format)`;
+            }
+
             syncDOM(pObj);
         }
 
@@ -939,11 +1203,35 @@
             const pin = document.getElementById(`p-${p.id}`);
             const ph = document.getElementById(`ph-${p.id}`);
             const st = document.querySelector(`#pc-${p.id} .qr-status`);
+            const trkBadge = document.getElementById(`trk-badge-${p.id}`);
+
             if (n && p.name && !n.value) n.value = p.name;
-            if (a && p.awb && !a.value) a.value = p.awb;
+            if (a && (p.trackingId || p.awb)) {
+                a.value = p.trackingId || p.awb;
+                a.classList.add('highlight-auto');
+            }
             if (pin && p.pincode && !pin.value) pin.value = p.pincode;
             if (ph && p.phone && !ph.value) ph.value = p.phone;
-            if (st) st.textContent = p.status;
+
+            if (st) {
+                st.textContent = p.status;
+                if (p.trackingId || p.status.startsWith('✅')) {
+                    st.className = 'qr-status ok';
+                } else if (p.status.startsWith('⏳')) {
+                    st.className = 'qr-status scanning';
+                } else {
+                    st.className = 'qr-status warn';
+                }
+            }
+
+            if (trkBadge) {
+                if (p.trackingId) {
+                    trkBadge.style.display = 'flex';
+                    trkBadge.innerHTML = `<span>🏷️ Unique Tracking QR:</span><strong>${p.trackingId}</strong>`;
+                } else {
+                    trkBadge.style.display = 'none';
+                }
+            }
         }
 
         function renderGrid() {
@@ -952,35 +1240,62 @@
             if (!pending.length) { g.innerHTML = ''; ab.style.display = 'none'; return; }
             ab.style.display = 'flex';
             document.getElementById('pcnt').textContent = `${pending.length} photo${pending.length > 1 ? 's' : ''} pending`;
+
             pending.forEach(p => {
                 if (!document.getElementById(`pc-${p.id}`)) {
                     const div = document.createElement('div');
                     div.className = 'pc'; div.id = `pc-${p.id}`;
                     div.innerHTML = `
-                        <div class="qr-status">${p.status}</div>
-                        <img id="img-${p.id}" src="${p.dataUrl}" alt="" onclick="openMod('${p.dataUrl}')" style="background:#000;">
-                        <button class="rm" onclick="rmPending('${p.id}')">✕</button>
+                        <div class="qr-status ${p.trackingId || p.status.startsWith('✅') ? 'ok' : (p.status.startsWith('⏳') ? 'scanning' : 'warn')}">${p.status}</div>
+                        <img id="img-${p.id}" src="${p.dataUrl}" alt="" onclick="openMod('${p.dataUrl}')">
+                        <button class="rm" onclick="rmPending('${p.id}')" title="Remove photo">✕</button>
                         <div class="pb">
-                            <div class="fg"><label>Name</label><input type="text" id="n-${p.id}" placeholder="Customer name" value="${p.name}" oninput="upd('${p.id}','name',this.value)"></div>
-                            <div class="fg"><label>AWB / Tracking ID</label><input type="text" id="a-${p.id}" placeholder="Scan or type AWB" value="${p.awb || ''}" oninput="upd('${p.id}','awb',this.value)"></div>
-                            <div class="fg"><label>Pincode</label><input type="text" id="p-${p.id}" placeholder="6-digit pincode" maxlength="6" value="${p.pincode}" oninput="upd('${p.id}','pincode',this.value)"></div>
-                            <div class="fg"><label>Phone</label><input type="tel" id="ph-${p.id}" placeholder="Phone number" maxlength="11" value="${p.phone}" oninput="upd('${p.id}','phone',this.value)"></div>
+                            <div id="trk-badge-${p.id}" class="trk-detected-badge" style="display:${p.trackingId ? 'flex' : 'none'};"><span style="font-size:.76rem;">🏷️ Tracking QR:</span><strong>${p.trackingId || ''}</strong></div>
+                            <div class="fg">
+                                <label>Tracking ID / AWB <span style="color:#10b981;font-weight:700;">(Auto-detected)</span></label>
+                                <input type="text" id="a-${p.id}" placeholder="TRK-YYMMDD-XXXX or AWB" value="${p.trackingId || p.awb || ''}" class="${p.trackingId ? 'highlight-auto' : ''}" oninput="upd('${p.id}','awb',this.value)">
+                            </div>
+                            <div class="fg">
+                                <label>Customer Name</label>
+                                <input type="text" id="n-${p.id}" placeholder="Customer name" value="${p.name}" oninput="upd('${p.id}','name',this.value)">
+                            </div>
+                            <div class="fg">
+                                <label>Phone Number</label>
+                                <input type="tel" id="ph-${p.id}" placeholder="10-digit mobile number" maxlength="12" value="${p.phone}" oninput="upd('${p.id}','phone',this.value)">
+                            </div>
+                            <div class="fg">
+                                <label>Pincode</label>
+                                <input type="text" id="p-${p.id}" placeholder="6-digit pincode" maxlength="6" value="${p.pincode}" oninput="upd('${p.id}','pincode',this.value)">
+                            </div>
+                            <button class="btn btn-s" style="width:100%;margin-top:4px;padding:6px;font-size:0.8rem;justify-content:center;" onclick="rescanItem('${p.id}')">
+                                🔄 Re-scan Photo
+                            </button>
                         </div>`;
                     g.appendChild(div);
-                } else { syncDOM(p); }
+                } else {
+                    syncDOM(p);
+                }
             });
         }
 
-        function detectCourier(num) {
-            if (!num) return '';
-            const n = String(num).toUpperCase();
-            if (n.startsWith('D') || n.startsWith('W') || n.startsWith('X') || n.startsWith('U')) return 'DTDC';
-            if (n.startsWith('35') || n.startsWith('19')) return 'Delhivery';
-            if (n.includes('TRACKON')) return 'Trackon';
-            return '';
+        function rescanItem(id) {
+            const p = pending.find(x => x.id === id);
+            if (!p) return;
+            p.status = '⏳ Re-scanning QR code...';
+            syncDOM(p);
+            scanParcelPhoto(p);
         }
 
-        function upd(id, f, v) { const p = pending.find(x => x.id === id); if (p) p[f] = v.trim(); }
+        function upd(id, f, v) {
+            const p = pending.find(x => x.id === id);
+            if (p) {
+                p[f] = v.trim();
+                if (f === 'awb' && p[f].startsWith('TRK-')) {
+                    p.trackingId = p[f];
+                }
+            }
+        }
+
         function rmPending(id) { 
             pending = pending.filter(p => p.id !== id); 
             const el = document.getElementById(`pc-${id}`);
@@ -989,7 +1304,13 @@
             if (!pending.length) ab.style.display = 'none';
             document.getElementById('pcnt').textContent = `${pending.length} photo${pending.length > 1 ? 's' : ''} pending`;
         }
-        function clearPending() { pending = []; renderGrid(); fi.value = ''; document.getElementById('uplog').innerHTML = ''; }
+
+        function clearPending() {
+            pending = [];
+            renderGrid();
+            fi.value = '';
+            document.getElementById('uplog').innerHTML = '';
+        }
 
         // ── Upload All ──
         async function uploadAll() {
@@ -999,18 +1320,26 @@
                 p.pincode = (document.getElementById(`p-${p.id}`)?.value || '').trim();
                 p.phone = (document.getElementById(`ph-${p.id}`)?.value || '').trim();
                 p.awb = (document.getElementById(`a-${p.id}`)?.value || '').trim();
+                if (p.awb.startsWith('TRK-')) p.trackingId = p.awb;
 
                 ['n', 'p', 'ph', 'a'].forEach(pre => document.getElementById(`${pre}-${p.id}`)?.classList.remove('err'));
 
-                // Relaxed validation: Need AT LEAST a Phone OR an AWB. Name and Pincode are optional now.
-                if (!p.phone && !p.awb) {
-                    document.getElementById(`ph-${p.id}`)?.classList.add('err');
+                // Need at least a Tracking ID, Phone, or AWB
+                if (!p.trackingId && !p.phone && !p.awb) {
                     document.getElementById(`a-${p.id}`)?.classList.add('err');
+                    document.getElementById(`ph-${p.id}`)?.classList.add('err');
                     ok = false;
                 }
             });
-            if (!ok) { toast('Need at least a Phone Number or AWB to link the photo', 'er'); return; }
-            if (!cfg.token || !cfg.repo) { toast('Save GitHub config first!', 'er'); return; }
+
+            if (!ok) {
+                toast('Please provide a Tracking ID, AWB, or Phone Number to link the photo', 'er');
+                return;
+            }
+            if (!cfg.token || !cfg.repo) {
+                toast('Save GitHub config first!', 'er');
+                return;
+            }
 
             const btn = document.getElementById('ubtn');
             btn.disabled = true; btn.textContent = '⏳ Uploading…';
@@ -1021,21 +1350,35 @@
             for (let p of pending) {
                 const item = document.createElement('div');
                 item.className = 'up-item going';
-                item.innerHTML = `<span class="up-icon"></span><span class="up-name">${p.name} — ${p.file?.name || 'photo'}</span><span style="color:var(--muted);font-size:.8rem;">Saving…</span>`;
+                const labelTitle = p.trackingId || p.awb || p.name || p.file?.name || 'Photo';
+                item.innerHTML = `<span class="up-icon"></span><span class="up-name">${labelTitle}</span><span style="color:var(--muted);font-size:.8rem;">Saving to GitHub…</span>`;
                 log.appendChild(item);
+
                 try {
                     const ts = new Date().toISOString();
-                    // Use last-5 digits of Phone OR AWB for filename linking
+                    const cleanTrk = (p.trackingId || p.awb || '').replace(/[^A-Za-z0-9_-]/g, '');
                     const cleanPh = (p.phone || '').replace(/\D/g, '');
-                    const ph5 = cleanPh.slice(-5);
-                    const cleanAwb = (p.awb || '').replace(/\W/g, '');
-                    const awb5 = cleanAwb.slice(-5);
-                    const prefixId = ph5 || awb5 || 'xxxxx';
-                    const safeName = (p.name || 'unknown').replace(/\s+/g, '_').slice(0, 15);
-                    const fname = `${prefixId}_${Date.now()}_${safeName}.jpg`;
+                    const ph5 = cleanPh.slice(-5) || '00000';
+                    const prefixId = cleanTrk || `PH${ph5}` || 'PARCEL';
+                    const safeName = (p.name || 'order').replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 15);
+                    const fname = `${prefixId}_${ph5}_${Date.now()}.jpg`;
+
                     const url = await uploadImage(fname, p.dataUrl);
-                    const rec = { id: p.id, name: p.name, pincode: p.pincode, phone: p.phone, awb: p.awb, photoUrl: url, photoPath: `images/${fname}`, uploadedAt: ts };
+
+                    const rec = {
+                        id: p.id,
+                        trackingId: p.trackingId || p.awb || '',
+                        awb: p.awb || p.trackingId || '',
+                        courierAwb: p.courierAwb || '',
+                        phone: p.phone || '',
+                        pincode: p.pincode || '',
+                        name: p.name || '',
+                        photoUrl: url,
+                        photoPath: `images/${fname}`,
+                        uploadedAt: ts
+                    };
                     newRecords.push(rec);
+
                     item.className = 'up-item done';
                     item.querySelector('span:last-child').textContent = 'Photo Uploaded ✅';
                 } catch (e) {
@@ -1057,11 +1400,13 @@
 
                     statusItem.className = 'up-item done';
                     statusItem.innerHTML = `<span class="up-icon"></span><span class="up-name">Database updated! ✅</span>`;
-                } catch (e) { toast('Failed to update records.json: ' + e.message, 'er'); }
+                } catch (e) {
+                    toast('Failed to update records.json: ' + e.message, 'er');
+                }
             }
 
             btn.disabled = false; btn.textContent = '☁️ Upload to GitHub';
-            toast(`Upload complete!`, 'ok');
+            toast('Upload complete!', 'ok');
             clearPending();
             loadRecords();
         }
@@ -1069,8 +1414,12 @@
         // ── Load & Display Records ──
         async function loadRecords() {
             const list = document.getElementById('rlist');
-            list.innerHTML = '<div class="empty"><div class="ei">⏳</div><p>Loading from GitHub…</p></div>';
-            if (!cfg.repo) { list.innerHTML = '<div class="empty"><div class="ei">⚙️</div><p>Configure GitHub Repository first.</p></div>'; return; }
+            list.innerHTML = '<div class="empty"><div class="ei">⏳</div><p>Loading records from GitHub…</p></div>';
+            if (!cfg.repo) {
+                list.innerHTML = '<div class="empty"><div class="ei">⚙️</div><p>Configure GitHub Repository first.</p></div>';
+                return;
+            }
+
             try {
                 let records = [];
                 if (cfg.token) {
@@ -1081,40 +1430,79 @@
                     if (!res.ok) throw new Error("Could not load records publicly.");
                     records = await res.json();
                 }
-                renderRecords(records);
-            } catch (e) { list.innerHTML = `<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`; }
+                cachedRecords = records || [];
+                renderRecords(cachedRecords);
+            } catch (e) {
+                list.innerHTML = `<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`;
+            }
+        }
+
+        function filterRecords(query) {
+            const q = (query || '').toLowerCase().trim();
+            if (!q) {
+                renderRecords(cachedRecords);
+                return;
+            }
+            const filtered = cachedRecords.filter(r => {
+                const trk = (r.trackingId || '').toLowerCase();
+                const awb = (r.awb || '').toLowerCase();
+                const ph = (r.phone || '').toLowerCase();
+                const name = (r.name || '').toLowerCase();
+                const pin = (r.pincode || '').toLowerCase();
+                return trk.includes(q) || awb.includes(q) || ph.includes(q) || name.includes(q) || pin.includes(q);
+            });
+            renderRecords(filtered);
         }
 
         function renderRecords(records) {
             const list = document.getElementById('rlist');
             const sb = document.getElementById('sbar');
             sb.innerHTML = `<span class="spill">📦 ${records.length} Record${records.length !== 1 ? 's' : ''}</span>${records.length ? `<span class="spill">📅 Latest: ${fmtDate(records[records.length - 1].uploadedAt)}</span>` : ''}`;
-            if (!records.length) { list.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No records yet.</p></div>'; return; }
+            
+            if (!records.length) {
+                list.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No records found.</p></div>';
+                return;
+            }
+
             const rev = [...records].reverse();
-            list.innerHTML = rev.map(r => `
-    <div class="rrow">
-      <img class="rthumb" src="${r.photoUrl}" alt="${r.name}" onclick="openMod('${r.photoUrl}')">
-      <div class="rinfo">
-        <strong>👤 ${r.name}</strong>
-        <div class="rmeta">📍 ${r.pincode} &nbsp;|&nbsp; 📞 ${r.phone} ${r.awb ? `&nbsp;|&nbsp; 🚚 ${r.awb}` : ''} &nbsp;|&nbsp; 🕐 ${fmtDate(r.uploadedAt)}</div>
-      </div>
-      <button class="rdel" onclick="deleteRecord('${r.id}','${r.photoPath || ''}')" title="Delete">🗑</button>
-    </div>`).join('');
+            list.innerHTML = rev.map(r => {
+                const trkCode = r.trackingId || r.awb || '';
+                return `
+                <div class="rrow">
+                    <img class="rthumb" src="${r.photoUrl}" alt="${r.name || 'Photo'}" onclick="openMod('${r.photoUrl}')">
+                    <div class="rinfo">
+                        <div class="rinfo-top">
+                            ${trkCode ? `<span class="trk-pill">🏷️ ${trkCode}</span>` : ''}
+                            ${r.name ? `<strong>👤 ${r.name}</strong>` : '<strong>📦 Parcel</strong>'}
+                        </div>
+                        <div class="rmeta">
+                            ${r.phone ? `📞 ${r.phone}` : ''}
+                            ${r.pincode ? ` &nbsp;|&nbsp; 📍 ${r.pincode}` : ''}
+                            ${r.courierAwb && r.courierAwb !== trkCode ? ` &nbsp;|&nbsp; 🚚 ${r.courierAwb}` : ''}
+                            &nbsp;|&nbsp; 🕐 ${fmtDate(r.uploadedAt)}
+                        </div>
+                    </div>
+                    <button class="rdel" onclick="deleteRecord('${r.id}','${r.photoPath || ''}')" title="Delete Record">🗑</button>
+                </div>`;
+            }).join('');
         }
 
         async function deleteRecord(id, photoPath) {
-            if (!confirm('Delete this record?')) return;
+            if (!confirm('Delete this record and photo permanently from GitHub?')) return;
             try {
                 const { records, sha } = await fetchRecordsJSON();
                 const updated = records.filter(r => r.id !== id);
                 await pushRecordsJSON(updated, sha);
+
                 if (photoPath) {
                     const fsha = await getFileSHA(photoPath);
                     if (fsha) await ghDel(`repos/${cfg.repo}/contents/${photoPath}`, { message: 'Delete photo', sha: fsha, branch: cfg.branch });
                 }
                 toast('Record deleted', 'in');
                 loadRecords();
-            } catch (e) { toast('Delete failed: ' + e.message, 'er'); }
+            } catch (e) {
+                toast('Delete failed: ' + e.message, 'er');
+            }
         }
 
         function fmtDate(iso) {
@@ -1124,14 +1512,24 @@
             return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
         }
 
-        function openMod(url) { document.getElementById('mimg').src = url; document.getElementById('imod').classList.add('open'); }
-        function closeMod() { document.getElementById('imod').classList.remove('open'); document.getElementById('mimg').src = ''; }
-        document.getElementById('imod').addEventListener('click', e => { if (e.target === document.getElementById('imod')) closeMod(); });
+        function openMod(url) {
+            document.getElementById('mimg').src = url;
+            document.getElementById('imod').classList.add('open');
+        }
+
+        function closeMod() {
+            document.getElementById('imod').classList.remove('open');
+            document.getElementById('mimg').src = '';
+        }
+
+        document.getElementById('imod').addEventListener('click', e => {
+            if (e.target === document.getElementById('imod')) closeMod();
+        });
 
         function toast(msg, type = 'ok') {
             const t = document.getElementById('toast');
             t.className = `${type} show`; t.textContent = msg;
-            setTimeout(() => t.className = '', 3200);
+            setTimeout(() => t.className = '', 3400);
         }
 
         loadConfig();
