@@ -8,7 +8,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Dancing+Script&family=Poppins:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Oswald:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Source+Sans+3:wght@400;700&family=Noto+Sans:wght@400;700&family=Mulish:wght@400;700&family=Quicksand:wght@400;700&family=Josefin+Sans:wght@400;700&family=Fira+Sans:wght@400;700&family=Exo+2:wght@400;700&family=Barlow:wght@400;700&family=Inter:wght@400;700&family=DM+Sans:wght@400;700&family=Work+Sans:wght@400;700&family=Cabin:wght@400;700&family=Karla:wght@400;700&family=Rubik:wght@400;700&family=Jost:wght@400;700&family=Manrope:wght@400;700&family=Pacifico&family=Lobster&family=Comfortaa:wght@400;700&family=Righteous&family=Caveat:wght@400;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Dancing+Script&family=Poppins:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Oswald:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@400;700&family=Source+Sans+3:wght@400;700&family=Noto+Sans:wght@400;700&family=Mulish:wght@400;700&family=Quicksand:wght@400;700&family=Josefin+Sans:wght@400;700&family=Fira+Sans:wght@400;700&family=Exo+2:wght@400;700&family=Barlow:wght@400;700&family=Inter:wght@400;700&family=DM+Sans:wght@400;700&family=Work+Sans:wght@400;700&family=Cabin:wght@400;700&family=Karla:wght@400;700&family=Rubik:wght@400;700&family=Jost:wght@400;700&family=Manrope:wght@400;700&family=Pacifico&family=Lobster&family=Comfortaa:wght@400;700&family=Righteous&family=Caveat:wght@400;700&family=JetBrains+Mono:wght@600;700&display=swap"
     rel="stylesheet">
   <style>
     *,
@@ -459,6 +459,21 @@
   </div>
 
   <script>
+    /* ============================================================
+       UNIQUE TRACKING ID GENERATOR
+       Generates a fresh guaranteed unique ID on every call
+       Format: TRK-YYMMDD-XXXX (e.g. TRK-260921-A9F3)
+    ============================================================ */
+    function generateUniqueId() {
+      var d = new Date();
+      var yymmdd = d.getFullYear().toString().slice(-2) +
+                   String(d.getMonth() + 1).padStart(2, '0') +
+                   String(d.getDate()).padStart(2, '0');
+      var rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+      var timeMs = Date.now().toString(36).slice(-2).toUpperCase();
+      return 'TRK-' + yymmdd + '-' + rand + timeMs;
+    }
+
     function addBox() {
       var es = document.getElementById('emptyState');
       if (es) es.remove();
@@ -526,9 +541,8 @@
     }
 
     /* ============================================================
-       PRINT — proven pattern from old working app
+       PRINT — Generates a fresh unique ID on EVERY print click
        open window → write header → loop write pages → close → print
-       QR code wrapped in try/catch so long addresses never crash it
     ============================================================ */
     async function printAddresses() {
       var boxes = document.querySelectorAll('.addr-box');
@@ -546,7 +560,7 @@
       win.document.write(
         '<html><head>' +
         '<title>Print ' + pageSize + '</title>' +
-        '<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">' +
+        '<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">' +
         '<style>' +
         '@page{size:' + pageSize + ' portrait;margin:10mm}' +
         'body{font-family:' + fontFamily + ',sans-serif;margin:0;padding:0}' +
@@ -554,7 +568,9 @@
         '.label{position:absolute;top:5px;right:10px;font-family:"Dancing Script",cursive;font-size:16px}' +
         '.body-row{display:flex;justify-content:space-between;align-items:flex-start;padding-top:30px}' +
         '.content{flex:1;font-size:16px;word-wrap:break-word;padding:10px}' +
-        '.qr-img{margin-left:15px;flex-shrink:0}' +
+        '.qr-box{margin-left:15px;flex-shrink:0;display:flex;flex-direction:column;align-items:center}' +
+        '.qr-box img{display:block}' +
+        '.tracking-id{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:#1e293b;margin-top:5px;text-align:center;letter-spacing:0.5px}' +
         '.note{position:absolute;bottom:20px;left:0;width:100%;text-align:center;font-size:15px;font-weight:bold}' +
         '</style></head><body>'
       );
@@ -572,6 +588,9 @@
 
         if (!content) continue;
 
+        // Generate a FRESH unique tracking ID on every print click
+        var uniqueId = generateUniqueId();
+
         // Extract key fields using robust regex for Indian phone numbers
         var phoneMatch = plainText.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b(\d{5}[\s-]?\d{5}|\d{10})\b/);
         var phone = phoneMatch ? phoneMatch[1].replace(/\D/g, '') : '';
@@ -582,12 +601,10 @@
           if (textLines[i].trim()) { name = textLines[i].trim(); break; }
         }
 
-        // Generate QR code — short payload only (name+phone+pincode)
-        // Wrapped in try/catch so a long address NEVER crashes the loop
+        // Generate QR code with unique tracking payload
         var qrDataUrl = '';
         try {
-          var qrText = (name + ' ' + phone + ' ' + pincode).trim();
-          if (qrText.length < 3) qrText = plainText.substring(0, 100);
+          var qrText = uniqueId + (phone ? ' ' + phone : '') + (pincode ? ' ' + pincode : '');
           var qrContainer = document.createElement('div');
           new QRCode(qrContainer, {
             text: qrText,
@@ -596,29 +613,33 @@
             correctLevel: QRCode.CorrectLevel.M
           });
           
-          // Wait slightly for the canvas to draw, same as PDF logic
+          // Wait slightly for canvas to render
           await new Promise(function(resolve) { setTimeout(resolve, 60); });
           
           var cv = qrContainer.querySelector('canvas');
           if (cv) qrDataUrl = cv.toDataURL('image/png');
         } catch (e) {
-          qrDataUrl = ''; // no QR is fine — address still prints
+          qrDataUrl = ''; // Fallback if QR generation fails
         }
 
-        // Write this page into the popup
+        // Write page with QR code and visible tracking ID underneath
         win.document.write(
           '<div class="page">' +
           '<div class="label">' + label + '</div>' +
           '<div class="body-row">' +
           '<div class="content" style="font-size:' + size + ';text-align:' + align + '">' + content + '</div>' +
-          (qrDataUrl ? '<div class="qr-img"><img src="' + qrDataUrl + '" width="100" height="100"/></div>' : '') +
+          (qrDataUrl ? 
+            '<div class="qr-box">' +
+              '<img src="' + qrDataUrl + '" width="100" height="100"/>' +
+              '<div class="tracking-id">' + uniqueId + '</div>' +
+            '</div>' : '') +
           '</div>' +
           '<div class="note"><em>&#9888;&#65039; Important : Unboxing video required for any claim.</em></div>' +
           '</div>'
         );
       }
 
-      // Close and print with a slight delay so QR codes and web fonts can fully load
+      // Close and trigger print dialog
       win.document.write('</body></html>');
       win.document.close();
       
@@ -629,7 +650,7 @@
     }
 
     /* ============================================================
-       PDF DOWNLOAD
+       PDF DOWNLOAD — Generates unique IDs for each box in PDF
     ============================================================ */
     async function generatePDF() {
       var jsPDFLib = window.jspdf;
@@ -647,16 +668,16 @@
         var text = boxes[b].innerText.trim();
         if (!text) continue;
 
+        var uniqueId = generateUniqueId();
         var phoneMatch = text.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b(\d{5}[\s-]?\d{5}|\d{10})\b/);
         var phone = phoneMatch ? phoneMatch[1].replace(/\D/g, '') : '';
         var pincode = (text.match(/\b\d{6}\b/) || [''])[0];
-        var name = text.split('\n').find(function (l) { return l.trim(); }) || '';
-        var qrUrl = null;
 
+        var qrUrl = null;
         try {
           var qDiv = document.createElement('div');
           new QRCode(qDiv, {
-            text: name + ' ' + phone + ' ' + pincode,
+            text: uniqueId + (phone ? ' ' + phone : '') + (pincode ? ' ' + pincode : ''),
             width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M
           });
           await new Promise(function (r) { setTimeout(r, 60); });
@@ -665,11 +686,15 @@
         } catch (e) { qrUrl = null; }
 
         var lines = doc.splitTextToSize(text, colWidth);
-        var blockH = Math.max(lines.length * 6, qrSz) + 15;
+        var blockH = Math.max(lines.length * 6, qrSz) + 18;
 
         if (y + blockH > maxH && y !== 10) { doc.addPage(); y = 10; }
         doc.text(lines, 10, y + 5);
-        if (qrUrl) doc.addImage(qrUrl, 'PNG', qrX, y, qrSz, qrSz);
+        if (qrUrl) {
+          doc.addImage(qrUrl, 'PNG', qrX, y, qrSz, qrSz);
+          doc.setFontSize(8);
+          doc.text(uniqueId, qrX, y + qrSz + 4);
+        }
         y += blockH;
       }
 
