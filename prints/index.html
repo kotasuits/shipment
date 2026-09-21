@@ -205,11 +205,11 @@
 
     .addr-box {
       width: calc(33.33% - 14px);
-      min-width: 280px;
+      min-width: 290px;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 46px 16px 16px;
+      padding: 48px 16px 16px;
       position: relative;
       backdrop-filter: blur(16px);
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
@@ -239,12 +239,15 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 42px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 12px;
+      padding: 0 10px;
       border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+      border-top-left-radius: 14px;
+      border-top-right-radius: 14px;
     }
 
     .kdo-btn {
@@ -254,24 +257,69 @@
       background: none;
       border: none;
       cursor: pointer;
-      padding: 2px 8px;
+      padding: 2px 6px;
       border-radius: 6px;
       transition: background 0.2s;
+      flex-shrink: 0;
     }
 
     .kdo-btn:hover {
       background: rgba(139, 92, 246, 0.2);
     }
 
+    /* TRACKING BADGE DISPLAYED DIRECTLY ON THE BOX */
+    .trk-badge-container {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      padding: 2px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .trk-badge-container:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: rgba(56, 189, 248, 0.6);
+    }
+
+    .trk-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: 0.5px;
+      user-select: all;
+    }
+
+    .trk-regen-btn {
+      background: none;
+      border: none;
+      color: #7dd3fc;
+      cursor: pointer;
+      font-size: 11px;
+      line-height: 1;
+      padding: 1px;
+      opacity: 0.75;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .trk-regen-btn:hover {
+      opacity: 1;
+      transform: rotate(90deg);
+    }
+
     .box-actions {
       display: flex;
       gap: 6px;
+      flex-shrink: 0;
     }
 
     .lock-btn {
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 9px;
+      padding: 3px 8px;
       border-radius: 5px;
       border: 1px solid rgba(239, 68, 68, 0.45);
       background: rgba(239, 68, 68, 0.12);
@@ -461,7 +509,7 @@
   <script>
     /* ============================================================
        UNIQUE TRACKING ID GENERATOR
-       Generates a fresh guaranteed unique ID on every call
+       Generates a fresh guaranteed unique ID
        Format: TRK-YYMMDD-XXXX (e.g. TRK-260921-A9F3)
     ============================================================ */
     function generateUniqueId() {
@@ -480,17 +528,34 @@
       var grid = document.getElementById('grid');
       var box = document.createElement('div');
       box.className = 'addr-box';
+      
+      // Generate unique code for this address box
+      var uid = generateUniqueId();
+
       box.innerHTML =
         '<div class="box-topbar">' +
-        '<button class="kdo-btn" onclick="toggleKdo(this)">KDO</button>' +
-        '<div class="box-actions">' +
-        '<button class="lock-btn" onclick="toggleLock(this)">Lock</button>' +
-        '<button class="del-btn"  onclick="removeBox(this)">X</button>' +
-        '</div>' +
+          '<button class="kdo-btn" onclick="toggleKdo(this)">KDO</button>' +
+          '<div class="trk-badge-container" title="Unique Tracking Code for this Box">' +
+            '<span class="trk-badge">' + uid + '</span>' +
+            '<button class="trk-regen-btn" onclick="regenBoxId(this)" title="Generate new ID">&#8635;</button>' +
+          '</div>' +
+          '<div class="box-actions">' +
+            '<button class="lock-btn" onclick="toggleLock(this)">Lock</button>' +
+            '<button class="del-btn"  onclick="removeBox(this)">X</button>' +
+          '</div>' +
         '</div>' +
         '<div class="editable" contenteditable="true" style="font-size:16px;font-family:Poppins,sans-serif;"></div>';
+
       grid.appendChild(box);
       box.querySelector('.editable').focus();
+    }
+
+    // Manual refresh of unique code for an individual box
+    function regenBoxId(btn) {
+      var badge = btn.closest('.box-topbar').querySelector('.trk-badge');
+      if (badge) {
+        badge.textContent = generateUniqueId();
+      }
     }
 
     function removeBox(btn) {
@@ -541,8 +606,8 @@
     }
 
     /* ============================================================
-       PRINT — Generates a fresh unique ID on EVERY print click
-       open window → write header → loop write pages → close → print
+       PRINT — Updates each box with a fresh unique ID on every click
+       so you can visibly see them change on screen and in print!
     ============================================================ */
     async function printAddresses() {
       var boxes = document.querySelectorAll('.addr-box');
@@ -580,6 +645,7 @@
         var box = boxes[b];
         var editable = box.querySelector('.editable');
         var kdoBtn = box.querySelector('.kdo-btn');
+        var trkBadge = box.querySelector('.trk-badge');
         var label = kdoBtn ? kdoBtn.textContent.trim() : '';
         var content = editable.innerHTML.trim();
         var plainText = editable.innerText.trim();
@@ -588,18 +654,17 @@
 
         if (!content) continue;
 
-        // Generate a FRESH unique tracking ID on every print click
+        // Generate a FRESH unique ID for this box on EVERY print click
         var uniqueId = generateUniqueId();
+        // Update the badge ON SCREEN immediately so the user sees the change!
+        if (trkBadge) {
+          trkBadge.textContent = uniqueId;
+        }
 
         // Extract key fields using robust regex for Indian phone numbers
         var phoneMatch = plainText.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b(\d{5}[\s-]?\d{5}|\d{10})\b/);
         var phone = phoneMatch ? phoneMatch[1].replace(/\D/g, '') : '';
         var pincode = (plainText.match(/\b\d{6}\b/) || [''])[0];
-        var name = '';
-        var textLines = plainText.split('\n');
-        for (var i = 0; i < textLines.length; i++) {
-          if (textLines[i].trim()) { name = textLines[i].trim(); break; }
-        }
 
         // Generate QR code with unique tracking payload
         var qrDataUrl = '';
@@ -613,13 +678,12 @@
             correctLevel: QRCode.CorrectLevel.M
           });
           
-          // Wait slightly for canvas to render
           await new Promise(function(resolve) { setTimeout(resolve, 60); });
           
           var cv = qrContainer.querySelector('canvas');
           if (cv) qrDataUrl = cv.toDataURL('image/png');
         } catch (e) {
-          qrDataUrl = ''; // Fallback if QR generation fails
+          qrDataUrl = '';
         }
 
         // Write page with QR code and visible tracking ID underneath
@@ -650,7 +714,7 @@
     }
 
     /* ============================================================
-       PDF DOWNLOAD — Generates unique IDs for each box in PDF
+       PDF DOWNLOAD — Also updates unique ID on screen & PDF
     ============================================================ */
     async function generatePDF() {
       var jsPDFLib = window.jspdf;
@@ -661,14 +725,22 @@
       if (pageSize === 'a5') { colWidth = 100; maxH = 190; qrSz = 30; qrX = 110; }
       if (pageSize === 'a6') { colWidth = 65; maxH = 130; qrSz = 25; qrX = 75; }
 
-      var boxes = document.querySelectorAll('.editable');
+      var boxes = document.querySelectorAll('.addr-box');
       var y = 10;
 
       for (var b = 0; b < boxes.length; b++) {
-        var text = boxes[b].innerText.trim();
+        var box = boxes[b];
+        var editable = box.querySelector('.editable');
+        var trkBadge = box.querySelector('.trk-badge');
+        var text = editable ? editable.innerText.trim() : '';
         if (!text) continue;
 
+        // Generate fresh unique ID and update on screen
         var uniqueId = generateUniqueId();
+        if (trkBadge) {
+          trkBadge.textContent = uniqueId;
+        }
+
         var phoneMatch = text.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b(\d{5}[\s-]?\d{5}|\d{10})\b/);
         var phone = phoneMatch ? phoneMatch[1].replace(/\D/g, '') : '';
         var pincode = (text.match(/\b\d{6}\b/) || [''])[0];
