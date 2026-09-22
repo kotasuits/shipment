@@ -501,7 +501,7 @@
         .tracking-status-title {
             font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: #f8fafc;
         }
 
@@ -857,17 +857,23 @@
                 let dispName = row.name || row.Name || '';
                 let dispPhone = row.phone || row.Phone || '';
                 let dispAwb = row.awb || row.AWB || '';
-                let dispTrackingId = row.trackingId || row.TrackingId || row.qrCode || row['Tracking ID'] || row['tracking_id'] || '';
+                let dispTrackingId = row.trackingId || row.TrackingId || row.qrCode || row.id || row['Tracking ID'] || row['tracking_id'] || '';
 
-                // If tracking ID not in separate field, extract from address or rawText if present
+                // Extract tracking ID (TRK-... or PKG-...) from address or rawText if not separated
                 if (!dispTrackingId) {
-                    let trkMatch = ((row.rawText || '') + ' ' + dispAddress).match(/\b(TRK-[\w-]+)\b/i);
-                    if (trkMatch) dispTrackingId = trkMatch[1];
+                    let trkMatch = ((row.rawText || '') + ' ' + dispAddress).match(/\b(TRK-[\w-]+|PKG-[\w-]+)\b/i);
+                    if (trkMatch) dispTrackingId = trkMatch[1].toUpperCase();
+                }
+
+                // Extract AWB if not in separate field
+                if (!dispAwb) {
+                    let awbMatch = ((row.rawText || '') + ' ' + dispAddress).match(/\b([DWXU]\d{8,9}|35\d{10,12}|19\d{10,12}|5006\d{6,8}|1003\d{6,8})\b/i);
+                    if (awbMatch) dispAwb = awbMatch[1];
                 }
 
                 if (!dispPhone && dispAddress) {
-                    const phMatch = dispAddress.match(/\b(\d{5}\s\d{5}|\d{10})\b/);
-                    if (phMatch) dispPhone = phMatch[1].replace(/\s/g, '');
+                    const phMatch = dispAddress.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b([6-9]\d{4}[\s-]?\d{5}|[6-9]\d{9}|\d{10})\b/);
+                    if (phMatch) dispPhone = phMatch[1].replace(/\D/g, '').slice(-10);
                 }
 
                 if (!dispAddress || dispAddress.trim() === '') {
@@ -886,7 +892,15 @@
                 }
 
                 const rowIdx = window._rowStore.length;
-                window._rowStore.push({ phone: dispPhone, timestamp: row.timestamp || '', awb: dispAwb });
+                // STORE FULL DATA INCLUDING UNIQUE TRACKING ID & AWB FOR EXACT MATCHING
+                window._rowStore.push({
+                    phone: dispPhone,
+                    timestamp: row.timestamp || '',
+                    awb: dispAwb,
+                    trackingId: dispTrackingId,
+                    name: dispName,
+                    address: dispAddress
+                });
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -969,10 +983,16 @@
 
         /* ============================================================
            TRACKING MODAL & GITHUB PHOTO INTEGRATION
+           Strictly matches Unique Tracking ID (TRK-...) first so 
+           repeat customers with multiple orders always see the EXACT photo!
         ============================================================ */
         function openTracker(idx) {
             const row = window._rowStore[idx];
             if (!row) return;
+
+            const dispTrk = row.trackingId || '';
+            const dispPhone = row.phone || '';
+            const dispAwb = row.awb || '';
 
             let modal = document.getElementById('trackingModal');
             if (!modal) {
@@ -990,7 +1010,10 @@
                         <div class="spinner" style="width:36px;height:36px;margin:auto;border:3px solid rgba(255,255,255,0.1);border-top-color:#60a5fa;border-radius:50%;animation:modalSpin 0.8s linear infinite;"></div>
                     </div>
                     <div class="tracking-status-title">Parcel Status</div>
-                    <p id="modal-details" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">📞 ${row.phone || 'N/A'}</p>
+                    <p id="modal-details" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
+                        ${dispTrk ? `<span style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);color:#38bdf8;padding:3px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-weight:700;display:inline-block;margin-bottom:6px;">🏷️ ${dispTrk}</span><br>` : ''}
+                        📞 ${dispPhone || 'N/A'} ${dispAwb ? ` &nbsp;|&nbsp; 🚚 ${dispAwb}` : ''}
+                    </p>
                     <div class="tracking-timeline" id="tracking-timeline">
                         <div class="timeline-item active">
                             <div class="timeline-dot"></div>
@@ -1002,14 +1025,14 @@
                     </div>
                     <div id="live-track-btn-wrap" style="margin-top:18px;"></div>
                     <div style="margin-top:12px;">
-                        <button class="refresh-btn" style="width:100%;justify-content:center;" onclick="loadTrackingData('${row.phone}','${row.awb}')">↻ Refresh Photo</button>
+                        <button class="refresh-btn" style="width:100%;justify-content:center;" onclick="loadTrackingData('${dispPhone}','${dispAwb}','${dispTrk}')">↻ Refresh Photo</button>
                     </div>
                 </div>
             `;
 
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
-            loadTrackingData(row.phone, row.awb);
+            loadTrackingData(dispPhone, dispAwb, dispTrk);
         }
 
         function closeTracker() {
@@ -1020,23 +1043,24 @@
             }
         }
 
-        async function loadTrackingData(phone, awb) {
+        /* ============================================================
+           PRECISE PHOTO MATCHER
+           1. Exact Unique Tracking ID match (TRK-...) in records.json
+           2. Exact Courier AWB match
+           3. Fallback: Phone number ONLY if tracking ID & AWB are absent
+        ============================================================ */
+        async function loadTrackingData(phone, awb, trackingId = '') {
             const photoContainer = document.getElementById('modal-photo');
             const liveWrap = document.getElementById('live-track-btn-wrap');
             if (!photoContainer) return;
 
+            photoContainer.innerHTML = '<div class="spinner" style="width:36px;height:36px;margin:auto;border:3px solid rgba(255,255,255,0.1);border-top-color:#60a5fa;border-radius:50%;animation:modalSpin 0.8s linear infinite;"></div>';
+
+            const cleanTrk = (trackingId || '').trim().toUpperCase();
+            const cleanAwb = (awb || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
             const cleanPhone = (phone || '').replace(/\D/g, '');
             const phoneLast5 = cleanPhone.slice(-5);
-            const cleanAwb = (awb || '').replace(/\W/g, '');
             const awbLast5 = cleanAwb.slice(-5);
-            const lookupKey = phoneLast5 || awbLast5;
-
-            function last5Match(recordPhone, recordAwb) {
-                if (!lookupKey || lookupKey.length < 4) return false;
-                const rPhoneClean = (recordPhone || '').replace(/\D/g, '').slice(-5);
-                const rAwbClean = (recordAwb || '').replace(/\W/g, '').slice(-5);
-                return rPhoneClean === lookupKey || rAwbClean === lookupKey;
-            }
 
             let foundRecord = null;
             const cfg = JSON.parse(localStorage.getItem('ghTrackCfg') || '{}');
@@ -1045,6 +1069,7 @@
             
             let githubRecords = [];
 
+            // Fetch records.json
             if (cfg.token && cfg.repo) {
                 try {
                     const res = await fetch(
@@ -1067,11 +1092,43 @@
                 } catch(e) {}
             }
 
-            const ghMatch = githubRecords.find(r => last5Match(r.phone, r.awb)) || null;
-            const resolvedAwb = (ghMatch && ghMatch.awb) || awb || '';
-            let resolvedPhoto = (ghMatch && ghMatch.photoUrl) || null;
+            let ghMatch = null;
 
-            if (!resolvedPhoto && cfg.token && cfg.repo && lookupKey.length >= 4) {
+            // ── PRIORITY 1: EXACT UNIQUE TRACKING ID (TRK-...) ──
+            // Guaranteed 1:1 match for repeat customers with multiple orders
+            if (cleanTrk) {
+                ghMatch = githubRecords.find(r => {
+                    const rTrk = (r.trackingId || '').trim().toUpperCase();
+                    const rAwb = (r.awb || '').trim().toUpperCase();
+                    const rPath = (r.photoPath || '').toUpperCase();
+                    const rUrl = (r.photoUrl || '').toUpperCase();
+                    return rTrk === cleanTrk || rAwb === cleanTrk || rPath.includes(cleanTrk) || rUrl.includes(cleanTrk);
+                });
+            }
+
+            // ── PRIORITY 2: EXACT COURIER AWB MATCH ──
+            if (!ghMatch && cleanAwb && cleanAwb.length >= 6) {
+                ghMatch = githubRecords.find(r => {
+                    const rAwb = (r.awb || r.courierAwb || '').trim().toUpperCase();
+                    const rPath = (r.photoPath || '').toUpperCase();
+                    return rAwb === cleanAwb || rPath.includes(cleanAwb);
+                });
+            }
+
+            // ── PRIORITY 3: FALLBACK TO PHONE ONLY IF NO TRACKING ID WAS GIVEN ──
+            if (!ghMatch && !cleanTrk && phoneLast5 && phoneLast5.length >= 4) {
+                ghMatch = githubRecords.find(r => {
+                    const rPhone = (r.phone || '').replace(/\D/g, '').slice(-5);
+                    const rAwb = (r.awb || '').replace(/\W/g, '').slice(-5);
+                    return rPhone === phoneLast5 || rAwb === awbLast5;
+                });
+            }
+
+            const resolvedAwb = (ghMatch && (ghMatch.awb || ghMatch.courierAwb)) || awb || '';
+            let resolvedPhoto = (ghMatch && (ghMatch.photoUrl || ghMatch.photo)) || null;
+
+            // Direct GitHub images folder inspection if records.json didn't resolve photo
+            if (!resolvedPhoto && cfg.token && cfg.repo) {
                 try {
                     const imgRes = await fetch(
                         `https://api.github.com/repos/${cfg.repo}/contents/images?ref=${cfg.branch || 'main'}&t=${Date.now()}`,
@@ -1079,9 +1136,25 @@
                     );
                     if (imgRes.ok) {
                         const imgList = await imgRes.json();
-                        const matches = imgList.filter(f => f.name.startsWith(lookupKey + '_') || f.name.includes('_' + lookupKey + '_'));
-                        matches.sort((a, b) => b.name.localeCompare(a.name));
-                        const bestMatch = matches[0] || imgList.find(f => f.name.includes(lookupKey));
+                        let bestMatch = null;
+
+                        // 1. Exact unique tracking ID in filename
+                        if (cleanTrk) {
+                            bestMatch = imgList.find(f => f.name.toUpperCase().includes(cleanTrk));
+                        }
+
+                        // 2. Exact courier AWB in filename
+                        if (!bestMatch && cleanAwb && cleanAwb.length >= 6) {
+                            bestMatch = imgList.find(f => f.name.toUpperCase().includes(cleanAwb));
+                        }
+
+                        // 3. Fallback to phone ONLY if no tracking ID
+                        if (!bestMatch && !cleanTrk && phoneLast5 && phoneLast5.length >= 4) {
+                            const matches = imgList.filter(f => f.name.startsWith(phoneLast5 + '_') || f.name.includes('_' + phoneLast5 + '_'));
+                            matches.sort((a, b) => b.name.localeCompare(a.name));
+                            bestMatch = matches[0];
+                        }
+
                         if (bestMatch) {
                             resolvedPhoto = `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/images/${bestMatch.name}`;
                         }
@@ -1092,6 +1165,7 @@
             foundRecord = (resolvedPhoto || resolvedAwb || ghMatch) ? {
                 photoUrl: resolvedPhoto,
                 awb: resolvedAwb,
+                trackingId: cleanTrk || (ghMatch ? ghMatch.trackingId : ''),
                 uploadedAt: ghMatch ? ghMatch.uploadedAt : null,
                 name: ghMatch ? ghMatch.name : ''
             } : null;
@@ -1122,7 +1196,7 @@
 
                 const trackAwb = awb || foundRecord.awb || '';
                 if (liveWrap) {
-                    if (trackAwb) {
+                    if (trackAwb && trackAwb.length >= 6) {
                         liveWrap.innerHTML = `
                             <div style="margin-top:8px;">
                                 <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;margin-bottom:8px;">🚚 Live Tracking: <strong style="color:#c084fc">${trackAwb}</strong></div>
@@ -1139,19 +1213,20 @@
                             setTimeout(() => initYQModal(trackAwb), 200);
                         }
                     } else {
-                        liveWrap.innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">No AWB linked.</p>`;
+                        liveWrap.innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:0.8rem;">No courier AWB linked yet.</p>`;
                     }
                 }
             } else {
                 photoContainer.innerHTML = `<div style="text-align:center;padding:20px;">
                     <div style="font-size:2.5rem;margin-bottom:12px;">📭</div>
-                    <strong>No photo uploaded yet</strong><br>
-                    <small style="color:var(--text-muted);">Phone: ${phone}</small><br><br>
-                    <a href="../uploads.html" target="_blank" style="color:#60a5fa;font-size:0.85rem;">Upload tracking photo →</a>
+                    <strong>No parcel photo uploaded for this order</strong><br>
+                    ${cleanTrk ? `<span style="display:inline-block;margin-top:5px;color:#38bdf8;font-family:'JetBrains Mono',monospace;font-weight:700;">${cleanTrk}</span><br>` : ''}
+                    <small style="color:var(--text-muted);">${phone ? 'Phone: ' + phone : ''}</small><br><br>
+                    <a href="../uploads.html" target="_blank" style="color:#60a5fa;font-size:0.85rem;">Upload parcel photo →</a>
                 </div>`;
 
                 const trackAwb = awb || '';
-                if (liveWrap && trackAwb) {
+                if (liveWrap && trackAwb && trackAwb.length >= 6) {
                     liveWrap.innerHTML = `
                         <div style="margin-top:8px;">
                             <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;margin-bottom:8px;">🚚 Live Tracking: <strong style="color:#c084fc">${trackAwb}</strong></div>
@@ -1167,6 +1242,8 @@
                     } else {
                         setTimeout(() => initYQModal(trackAwb), 200);
                     }
+                } else if (liveWrap) {
+                    liveWrap.innerHTML = '';
                 }
             }
         }
