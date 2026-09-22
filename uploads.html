@@ -817,15 +817,25 @@
         async function scanParcelPhoto(pObj) {
             const img = new Image();
             img.onload = async () => {
-                const detectedCodes = [];
-                const seen = new Set();
+                const detectedQRs = [];
+                const detectedBarcodes = [];
+                const seenQRs = new Set();
+                const seenBarcodes = new Set();
 
-                function recordCode(txt) {
+                function recordQR(txt) {
                     if (!txt) return;
                     const str = String(txt).trim();
-                    if (!str || seen.has(str)) return;
-                    seen.add(str);
-                    detectedCodes.push(str);
+                    if (!str || seenQRs.has(str)) return;
+                    seenQRs.add(str);
+                    detectedQRs.push(str);
+                }
+
+                function recordBarcode(txt) {
+                    if (!txt) return;
+                    const str = String(txt).trim();
+                    if (!str || seenBarcodes.has(str)) return;
+                    seenBarcodes.add(str);
+                    detectedBarcodes.push(str);
                 }
 
                 // 1. Native BarcodeDetector (fastest, detects QR + 1D Barcodes)
@@ -835,12 +845,18 @@
                         const detector = new BarcodeDetector({ formats });
                         const barcodes = await detector.detect(img);
                         if (barcodes && barcodes.length) {
-                            barcodes.forEach(b => recordCode(b.rawValue));
+                            barcodes.forEach(b => {
+                                if (b.format === 'qr_code') {
+                                    recordQR(b.rawValue);
+                                } else {
+                                    recordBarcode(b.rawValue);
+                                }
+                            });
                         }
                     } catch (e) {}
                 }
 
-                // 2. jsQR (High-resolution canvas pass for QR codes)
+                // 2. jsQR (High-resolution canvas pass strictly for QR codes)
                 if (typeof jsQR !== 'undefined') {
                     try {
                         const cvs = document.createElement('canvas');
@@ -856,56 +872,114 @@
                         ctx.drawImage(img, 0, 0, w, h);
                         const imgData = ctx.getImageData(0, 0, w, h);
                         const qr = jsQR(imgData.data, w, h, { inversionAttempts: 'attemptBoth' });
-                        if (qr && qr.data) recordCode(qr.data);
+                        if (qr && qr.data) recordQR(qr.data);
                     } catch (e) {}
                 }
 
-                // 3. ZXing (Fallback for courier 1D barcodes / QR)
+                // 3. ZXing (Multi-format & 1D Barcode decoder)
                 if (typeof ZXing !== 'undefined') {
                     try {
                         const reader = new ZXing.BrowserMultiFormatReader();
                         const zxRes = await reader.decodeFromImageElement(img);
-                        if (zxRes && zxRes.getText()) recordCode(zxRes.getText());
+                        if (zxRes && zxRes.getText()) {
+                            const fmt = zxRes.getBarcodeFormat();
+                            const isQR = (typeof ZXing.BarcodeFormat !== 'undefined' && fmt === ZXing.BarcodeFormat.QR_CODE) || String(fmt).toUpperCase().includes('QR');
+                            if (isQR) {
+                                recordQR(zxRes.getText());
+                            } else {
+                                recordBarcode(zxRes.getText());
+                            }
+                        }
                     } catch (e) {}
+
+                    // Dedicated 1D barcode pass if no 1D barcode detected yet
+                    if (detectedBarcodes.length === 0) {
+                        try {
+                            const hints = new Map();
+                            if (ZXing.DecodeHintType && ZXing.BarcodeFormat) {
+                                hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+                                    ZXing.BarcodeFormat.CODE_128,
+                                    ZXing.BarcodeFormat.CODE_39,
+                                    ZXing.BarcodeFormat.CODE_93,
+                                    ZXing.BarcodeFormat.EAN_13,
+                                    ZXing.BarcodeFormat.EAN_8,
+                                    ZXing.BarcodeFormat.ITF,
+                                    ZXing.BarcodeFormat.UPC_A,
+                                    ZXing.BarcodeFormat.UPC_E
+                                ]);
+                            }
+                            const barcodeReader = new ZXing.BrowserMultiFormatReader(hints);
+                            const zxBcRes = await barcodeReader.decodeFromImageElement(img);
+                            if (zxBcRes && zxBcRes.getText()) {
+                                recordBarcode(zxBcRes.getText());
+                            }
+                        } catch (e) {}
+                    }
                 }
 
-                processCodes(detectedCodes, pObj);
+                processCodes(detectedQRs, detectedBarcodes, pObj);
             };
             img.src = pObj.dataUrl;
         }
 
-        function processCodes(codesList, pObj) {
-            if (!codesList || !codesList.length) {
-                pObj.status = '⚠️ No codes detected (enter manually)';
-                syncDOM(pObj);
-                return;
-            }
+        function processCodes(qrsList, barcodesList, pObj) {
+            // 1. Process QR codes ONLY for Unique QR Code & Phone/Name/Pincode
+            for (const qrText of qrsList) {
+                if (!qrText) continue;
+                const text = String(qrText).trim();
 
-            for (const text of codesList) {
-                // Check for JSON payload from label maker
+                // Check for JSON payload from label maker QR
                 try {
                     if (text.startsWith('{') && text.endsWith('}')) {
                         const parsed = JSON.parse(text);
                         if (parsed.trackingId || parsed.id || parsed.qrCode || parsed.trk) {
                             pObj.trackingId = String(parsed.trackingId || parsed.id || parsed.qrCode || parsed.trk).trim().toUpperCase();
                         }
-                        if (parsed.awb || parsed.courierAwb) {
-                            pObj.awb = String(parsed.awb || parsed.courierAwb).trim();
-                        }
                         if ((parsed.phone || parsed.mobile) && !pObj.phone) {
                             pObj.phone = String(parsed.phone || parsed.mobile).replace(/\D/g, '').slice(-10);
                         }
+                        if (parsed.name && !pObj.name) pObj.name = parsed.name.trim();
+                        if (parsed.pincode && !pObj.pincode) pObj.pincode = String(parsed.pincode).trim();
+                        // NOTE: AWB is strictly NOT read from QR code!
                         continue;
                     }
                 } catch (e) {}
 
-                // Extract Unique QR Code: TRK-YYMMDD-XXXX
+                // Extract Unique Tracking ID: TRK-YYMMDD-XXXX from QR code
                 const trkMatch = text.match(/\b(TRK-[A-Za-z0-9-]+)\b/i);
                 if (trkMatch && !pObj.trackingId) {
                     pObj.trackingId = trkMatch[1].toUpperCase();
+                } else if (!pObj.trackingId && text.startsWith('TRK-')) {
+                    pObj.trackingId = text.toUpperCase();
                 }
 
-                // Extract Courier AWB
+                // Extract Phone Number from QR code
+                const textNoTrk = text.replace(/TRK-[A-Za-z0-9-]+/gi, '');
+                const phMatch = textNoTrk.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b([6-9]\d{4}[\s-]?\d{5}|[6-9]\d{9})\b/);
+                if (phMatch && !pObj.phone) {
+                    pObj.phone = phMatch[1].replace(/\D/g, '').slice(-10);
+                }
+
+                // Extract Pincode & Name from QR code
+                const pinMatch = textNoTrk.match(/\b([1-9]\d{5})\b/);
+                if (pinMatch && !pObj.pincode) pObj.pincode = pinMatch[1];
+                if (phMatch || pinMatch) {
+                    let n = text;
+                    if (phMatch) n = n.replace(phMatch[0], '');
+                    if (pinMatch) n = n.replace(pinMatch[0], '');
+                    n = n.replace(/TRK-[A-Za-z0-9-]+/gi, '').replace(/[|\-_:;]+/g, ' ').trim();
+                    if (n && n.length > 2 && n.length < 30 && !pObj.name && !/^\d+$/.test(n)) {
+                        pObj.name = n;
+                    }
+                }
+            }
+
+            // 2. Process Barcodes ONLY for Courier AWB (Strictly from 1D barcode!)
+            for (const bcText of barcodesList) {
+                if (!bcText) continue;
+                const text = String(bcText).trim();
+
+                // Check Courier AWB formats
                 const dtdcMatch = text.match(/\b([DWXU]\d{8,9})\b/i);
                 const delhMatch = text.match(/\b(35\d{10,12}|19\d{10,12})\b/);
                 const trackonMatch = text.match(/\b(5006\d{6,8}|1003\d{6,8})\b/);
@@ -920,31 +994,16 @@
                     pObj.awb = text;
                 }
 
-                // Extract Phone Number (from text excluding TRK match)
-                const textNoTrk = text.replace(/TRK-[A-Za-z0-9-]+/gi, '');
-                const phMatch = textNoTrk.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b([6-9]\d{4}[\s-]?\d{5}|[6-9]\d{9})\b/);
-                if (phMatch && !pObj.phone) {
-                    pObj.phone = phMatch[1].replace(/\D/g, '').slice(-10);
-                }
-
-                // Extract Pincode & Name if present
-                const pinMatch = text.match(/\b(\d{6})\b/);
-                if (pinMatch && !pObj.pincode) pObj.pincode = pinMatch[1];
-
-                if (phMatch || pinMatch) {
-                    let n = text;
-                    if (phMatch) n = n.replace(phMatch[0], '');
-                    if (pinMatch) n = n.replace(pinMatch[0], '');
-                    n = n.replace(/TRK-[A-Za-z0-9-]+/gi, '').replace(/[|\-_:;]+/g, ' ').trim();
-                    if (n && n.length > 2 && n.length < 30 && !pObj.name && !/^\d+$/.test(n)) {
-                        pObj.name = n;
-                    }
+                // Also check if barcode has phone number
+                if (!pObj.phone) {
+                    const phMatch = text.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b([6-9]\d{4}[\s-]?\d{5}|[6-9]\d{9})\b/);
+                    if (phMatch) pObj.phone = phMatch[1].replace(/\D/g, '').slice(-10);
                 }
             }
 
             const captured = [];
-            if (pObj.trackingId) captured.push('QR');
-            if (pObj.awb) captured.push('AWB');
+            if (pObj.trackingId) captured.push('Unique QR');
+            if (pObj.awb) captured.push('Courier AWB');
             if (pObj.phone) captured.push('Phone');
 
             if (captured.length > 0) {
