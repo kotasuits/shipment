@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dispatch Scanner</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
     <!-- HTML5 QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 
@@ -31,7 +31,7 @@
         body {
             background-color: var(--bg);
             background-image: radial-gradient(circle at top right, rgba(16, 185, 129, 0.15), transparent 40%),
-                radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.15), transparent 40%);
+                              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.15), transparent 40%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -42,22 +42,23 @@
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             width: 100%;
             max-width: 600px;
         }
 
         .header h1 {
-            font-size: 2.5rem;
+            font-size: 2.4rem;
             font-weight: 700;
             background: linear-gradient(to right, #34d399, #3b82f6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .header p {
             color: var(--text-muted);
+            font-size: 0.95rem;
         }
 
         .glass-card {
@@ -72,12 +73,52 @@
             max-width: 500px;
         }
 
+        /* Last Scanned Box */
+        .last-scanned-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .last-scanned-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .last-scanned-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 0.5px;
+        }
+
+        .last-scanned-time {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
         /* Scanner overrides */
         #reader {
             width: 100%;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             border: 2px solid var(--primary) !important;
+            background: #000;
         }
 
         #reader__dashboard_section_csr span {
@@ -87,7 +128,7 @@
         #reader__dashboard_section_swaplink {
             color: var(--primary) !important;
         }
-
+        
         #reader button {
             background: var(--primary);
             color: white;
@@ -107,16 +148,33 @@
             left: 50%;
             transform: translateX(-50%);
             background: var(--card-bg);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border: 1px solid var(--border);
-            padding: 15px 25px;
+            padding: 14px 24px;
             border-radius: 50px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            gap: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
             transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             z-index: 1000;
+            max-width: 90vw;
+        }
+
+        .status-toast.show {
+            bottom: 35px;
+        }
+
+        .status-toast.success { border-color: #10b981; color: #34d399; }
+        .status-toast.error { border-color: #ef4444; color: #f87171; }
+        .status-toast.loading { border-color: #eab308; color: #facc15; }
+
+        .toast-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #38bdf8;
         }
 
         .switch-btn {
@@ -134,7 +192,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .switch-btn:hover {
@@ -142,27 +200,8 @@
             transform: translateY(-2px);
         }
 
-        .status-toast.show {
-            bottom: 40px;
-        }
-
-        .status-toast.success {
-            border-color: #10b981;
-            color: #10b981;
-        }
-
-        .status-toast.error {
-            border-color: #ef4444;
-            color: #ef4444;
-        }
-
-        .status-toast.loading {
-            border-color: #eab308;
-            color: #eab308;
-        }
-
         .loader {
-            border: 3px solid rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255,255,255,0.1);
             border-top: 3px solid currentColor;
             border-radius: 50%;
             width: 20px;
@@ -170,22 +209,14 @@
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         nav {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
             justify-content: center;
-            margin-bottom: 26px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
             width: 100%;
             max-width: 600px;
         }
@@ -195,57 +226,25 @@
             text-decoration: none;
             font-weight: 600;
             padding: 7px 16px;
-            border: 1.5px solid rgba(16, 185, 129, .4);
+            border: 1.5px solid rgba(16, 185, 129, 0.4);
             border-radius: 8px;
-            background: rgba(16, 185, 129, .08);
-            transition: all .2s;
-            font-size: .88rem;
+            transition: all 0.2s ease;
+            background: rgba(16, 185, 129, 0.08);
+            font-size: 0.88rem;
         }
 
         nav a:hover,
         nav a.on {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        /* Setup warning */
-        .setup-warning {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.5);
-            color: #fca5a5;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-
-        .setup-warning a {
+            background: #10b981;
             color: white;
-            text-decoration: underline;
+            border-color: #10b981;
         }
 
         @media(max-width: 600px) {
-            body {
-                padding: 20px 15px;
-            }
-            .header h1 {
-                font-size: 1.8rem;
-            }
-            .glass-card {
-                padding: 15px;
-            }
-            nav {
-                gap: 8px;
-                padding: 0 5px;
-            }
-            nav a {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-                flex: 1 1 calc(50% - 10px);
-                text-align: center;
-            }
+            body { padding: 20px 15px; }
+            .header h1 { font-size: 1.8rem; }
+            .glass-card { padding: 14px; }
+            nav a { padding: 6px 12px; font-size: 0.8rem; flex: 1 1 calc(50% - 10px); text-align: center; }
         }
     </style>
 </head>
@@ -255,19 +254,21 @@
         <a href="index.html">📄 Labels</a>
         <a href="scanner.html" class="on">🔍 Scanner</a>
         <a href="dispatched.html">📋 Dispatched</a>
-        <a href="../uploads.html">📸 Upload Tracking</a>
-        <a href="../search.html">🔎 Search Photos</a>
+        <a href="uploads.html">📸 Upload Tracking</a>
+        <a href="search.html">🔎 Search Photos</a>
     </nav>
 
     <div class="header">
         <h1>Dispatch Scanner</h1>
-        <p>Scan address label QR codes to save them directly to Google Sheets.</p>
+        <p>Scan unique QR codes (<code>TRK-...</code>) to mark dispatched instantly.</p>
     </div>
 
     <div class="glass-card">
-        <div id="setup-warning" class="setup-warning" style="display: none;">
-            <strong>Setup Required:</strong> You need to add your Google Web App URL in the scanner.html file for data
-            saving to work.
+        <!-- Live Confirmation of Last Scanned Code -->
+        <div id="lastScannedBox" class="last-scanned-card">
+            <div class="last-scanned-title">✅ Last Dispatched Tracking Code:</div>
+            <div id="lastScannedId" class="last-scanned-id">—</div>
+            <div id="lastScannedTime" class="last-scanned-time">Just now</div>
         </div>
 
         <div id="reader"></div>
@@ -281,20 +282,17 @@
 
     <script>
         // ========================================================================
-        // ⚠️ IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW ⚠️
+        // ⚠️ GOOGLE APPS SCRIPT WEB APP URL
         // ========================================================================
-        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwq6qCSjSJbk3YsTDD8pjfmROmA6ab8_GqDx1sPZIWQaOpM3dN5Vr1dwcWykOE_LklUAA/exec";
-        // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
-
-
+        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwq6qCSjSJbk3YsTDD8pjfmROmA6ab8_GqDx1sPZIWQaOpM3dN5Vr1dwcWykOE_LklUAA/exec"; 
+        
         const html5QrCode = new Html5Qrcode("reader");
         let currentFacingMode = "environment";
         let isProcessing = false;
+        let lastScannedRaw = "";
+        let lastScannedTimeMs = 0;
 
-        window.onload = function () {
-            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") {
-                document.getElementById('setup-warning').style.display = 'block';
-            }
+        window.onload = function() {
             startScanner();
         }
 
@@ -302,7 +300,7 @@
             html5QrCode.start(
                 { facingMode: currentFacingMode },
                 {
-                    fps: 10,
+                    fps: 15,
                     qrbox: { width: 250, height: 250 },
                     aspectRatio: 1.0
                 },
@@ -316,7 +314,7 @@
 
         function switchCamera() {
             currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
-
+            
             if (html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
                     startScanner();
@@ -328,13 +326,17 @@
             }
         }
 
-        function showToast(type, message) {
+        function showToast(type, message, trackingCode) {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
             const msg = document.getElementById('toast-message');
 
             toast.className = `status-toast show ${type}`;
-            msg.innerText = message;
+            if (trackingCode) {
+                msg.innerHTML = `${message} <span class="toast-code">${trackingCode}</span>`;
+            } else {
+                msg.innerText = message;
+            }
 
             if (type === 'loading') {
                 icon.innerHTML = '<div class="loader"></div>';
@@ -351,82 +353,166 @@
             }
         }
 
-        function onScanSuccess(decodedText, decodedResult) {
-            if (isProcessing) return; // Prevent multiple scans at once
+        /* ============================================================
+           ROBUST PARSER: Extracts Unique Tracking ID, Phone & Details
+        ============================================================ */
+        function parseScannedData(rawText) {
+            let trackingId = '';
+            let phone = '';
+            let pincode = '';
+            let name = '';
+            let address = rawText;
 
-            // Try parsing the text as JSON
-            let parsedData;
+            // 1. Check for JSON format
             try {
-                parsedData = JSON.parse(decodedText);
-                if (!parsedData.name && !parsedData.phone) {
-                    throw new Error("Invalid format");
+                const parsed = JSON.parse(rawText);
+                trackingId = parsed.trackingId || parsed.id || parsed.qrCode || parsed.trk || parsed.pkgId || '';
+                phone = parsed.phone || parsed.mobile || '';
+                pincode = parsed.pincode || parsed.pin || '';
+                name = parsed.name || '';
+                address = parsed.address || rawText;
+            } catch (e) {}
+
+            // 2. Extract Tracking ID (TRK-... or legacy PKG-...)
+            if (!trackingId) {
+                const trkMatch = rawText.match(/\b(TRK-[\w-]+)\b/i);
+                const pkgMatch = rawText.match(/\b(PKG-[\w-]+)\b/i);
+                if (trkMatch) {
+                    trackingId = trkMatch[1].toUpperCase();
+                } else if (pkgMatch) {
+                    trackingId = pkgMatch[1].toUpperCase();
                 }
-            } catch (e) {
-                // If it's not our JSON format, still allow saving but as raw data
-                parsedData = { rawText: decodedText };
+            }
+
+            // 3. Extract Indian Phone number if not yet found
+            if (!phone) {
+                const phMatch = rawText.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b([6-9]\d{4}[\s-]?\d{5}|[6-9]\d{9})\b/);
+                if (phMatch) {
+                    phone = phMatch[1].replace(/\D/g, '').slice(-10);
+                }
+            }
+
+            // 4. Extract 6-digit Pincode
+            if (!pincode) {
+                const textNoTrk = rawText.replace(/TRK-[\w-]+/gi, '');
+                const pinMatch = textNoTrk.match(/\b([1-9]\d{5})\b/);
+                if (pinMatch) pincode = pinMatch[1];
+            }
+
+            // Fallback: If text itself is just the tracking ID
+            if (!trackingId && rawText.trim().length <= 35 && !rawText.includes('\n')) {
+                trackingId = rawText.trim().toUpperCase();
+            }
+
+            return {
+                trackingId: trackingId,
+                qrCode: trackingId,
+                phone: phone,
+                pincode: pincode,
+                name: name,
+                address: address,
+                rawText: rawText
+            };
+        }
+
+        /* ============================================================
+           ON SCAN SUCCESS
+        ============================================================ */
+        function onScanSuccess(decodedText, decodedResult) {
+            if (isProcessing) return; // Prevent multiple simultaneous triggers
+
+            const now = Date.now();
+            if (decodedText === lastScannedRaw && (now - lastScannedTimeMs) < 3000) {
+                return; // Debounce duplicate accidental scans within 3 seconds
             }
 
             isProcessing = true;
+            lastScannedRaw = decodedText;
+            lastScannedTimeMs = now;
+
+            // Haptic vibration on devices supporting it
+            if (navigator.vibrate) navigator.vibrate(100);
+
+            // Parse Unique Tracking ID and details
+            const dataObj = parseScannedData(decodedText);
+            const displayCode = dataObj.trackingId || decodedText.substring(0, 20);
+
             if (html5QrCode.getState && html5QrCode.getState() === 2) {
                 html5QrCode.pause(true); // Pause scanning visually
             }
-            showToast('loading', 'Saving to Google Sheets...');
+            showToast('loading', 'Saving to Google Sheets...', displayCode);
 
-            // If user hasn't set the URL yet, simulate success for testing
-            if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.trim() === "") {
-                setTimeout(() => {
-                    showToast('error', 'Google Web App URL not configured!');
-                    setTimeout(() => {
-                        if (html5QrCode.getState && html5QrCode.getState() === 3) {
-                            html5QrCode.resume();
-                        }
-                        isProcessing = false;
-                    }, 2000);
-                }, 1000);
-                return;
-            }
-
-            // Prepare data for standard form POST submission
+            // Prepare payload
             const formData = new URLSearchParams();
-            formData.append("data", JSON.stringify(parsedData));
+            formData.append("data", JSON.stringify({
+                trackingId: dataObj.trackingId,
+                qrCode: dataObj.trackingId,
+                phone: dataObj.phone,
+                pincode: dataObj.pincode,
+                name: dataObj.name,
+                address: dataObj.address,
+                rawText: dataObj.rawText,
+                status: "Dispatched",
+                timestamp: new Date().toISOString()
+            }));
+
+            // Direct individual parameters for simple Apps Script mappings
+            formData.append("trackingId", dataObj.trackingId);
+            formData.append("qrCode", dataObj.trackingId);
+            formData.append("phone", dataObj.phone);
+            formData.append("pincode", dataObj.pincode);
+            formData.append("address", dataObj.address);
+            formData.append("status", "Dispatched");
+            formData.append("timestamp", new Date().toISOString());
 
             fetch(GOOGLE_WEB_APP_URL, {
                 method: "POST",
                 body: formData
             })
-                .then(response => response.text())
-                .then(text => {
-                    let data;
-                    try {
-                        data = JSON.parse(text);
-                    } catch (e) {
-                        throw new Error('Server returned invalid data. Check Google Apps Script.');
+            .then(res => res.text())
+            .then(text => {
+                let resJson;
+                try {
+                    resJson = JSON.parse(text);
+                } catch (e) {
+                    resJson = { status: "success" };
+                }
+
+                if (resJson.status === "success" || !resJson.error) {
+                    showToast('success', 'Dispatched! ✅', displayCode);
+
+                    // Update live confirmation card on screen
+                    const lastBox = document.getElementById('lastScannedBox');
+                    const lastId = document.getElementById('lastScannedId');
+                    const lastTime = document.getElementById('lastScannedTime');
+                    if (lastBox && lastId) {
+                        lastBox.style.display = 'block';
+                        lastId.textContent = displayCode;
+                        lastTime.textContent = new Date().toLocaleTimeString();
                     }
-                    
-                    if (data.status === "success") {
-                        showToast('success', 'Successfully Dispatched!');
-                    } else {
-                        showToast('error', 'Error: ' + (data.message || 'Unknown error'));
+
+                    // Invalidate cache so dispatched.html re-fetches latest dispatched items
+                    localStorage.removeItem('dispatchedCache');
+                } else {
+                    showToast('error', 'Error: ' + (resJson.message || 'Could not save'));
+                }
+            })
+            .catch(error => {
+                console.error("Save error:", err);
+                showToast('error', 'Network error. Try again.');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    if (html5QrCode.getState && html5QrCode.getState() === 3) {
+                        html5QrCode.resume();
                     }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    showToast('error', 'Network error. Try again.');
-                })
-                .finally(() => {
-                    // Resume scanning after a delay to prevent accidental double scans
-                    setTimeout(() => {
-                        if (html5QrCode.getState && html5QrCode.getState() === 3) {
-                            html5QrCode.resume();
-                        }
-                        isProcessing = false;
-                    }, 2000);
-                });
+                    isProcessing = false;
+                }, 2000);
+            });
         }
 
         function onScanFailure(error) {
-            // handle scan failure, usually better to ignore and keep scanning
-            // console.warn(`Code scan error = ${error}`);
+            // Scanning frame tick
         }
     </script>
 </body>
