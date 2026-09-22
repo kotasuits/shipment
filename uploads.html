@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tracking Photo Upload</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     
-    <!-- QR Code & Barcode Decoders -->
+    <!-- Decoders -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
 
@@ -17,8 +17,8 @@
             --primary: #6366f1;
             --pl: #818cf8;
             --bg: #0a0f1e;
-            --card: rgba(20, 30, 55, .78);
-            --inp: rgba(10, 15, 35, .7);
+            --card: rgba(20, 30, 55, .8);
+            --inp: rgba(10, 15, 35, .75);
             --txt: #f1f5f9;
             --muted: #94a3b8;
             --bdr: rgba(255, 255, 255, .09);
@@ -36,10 +36,11 @@
 
         body {
             background: var(--bg);
-            background-image: radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, .18), transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(34, 211, 238, .12), transparent 50%);
+            background-image: radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, .16), transparent 50%),
+                              radial-gradient(ellipse at 80% 100%, rgba(34, 211, 238, .1), transparent 50%);
             color: var(--txt);
             min-height: 100vh;
-            padding: 28px 16px 60px;
+            padding: 24px 16px 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -50,9 +51,9 @@
             gap: 10px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-bottom: 26px;
+            margin-bottom: 24px;
             width: 100%;
-            max-width: 940px;
+            max-width: 900px;
         }
 
         nav a {
@@ -60,7 +61,7 @@
             text-decoration: none;
             font-weight: 600;
             padding: 7px 16px;
-            border: 1.5px solid rgba(99, 102, 241, .4);
+            border: 1.5px solid rgba(99, 102, 241, .35);
             border-radius: 8px;
             background: rgba(99, 102, 241, .08);
             transition: all .2s;
@@ -74,29 +75,15 @@
             border-color: var(--primary);
         }
 
-        @media(max-width: 600px) {
-            nav {
-                gap: 8px;
-                padding: 0 5px;
-            }
-
-            nav a {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-                flex: 1 1 calc(50% - 10px);
-                text-align: center;
-            }
-        }
-
         .ph {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             width: 100%;
-            max-width: 940px;
+            max-width: 900px;
         }
 
         .ph h1 {
-            font-size: clamp(1.6rem, 4vw, 2.6rem);
+            font-size: clamp(1.6rem, 4vw, 2.3rem);
             font-weight: 700;
             background: linear-gradient(135deg, #818cf8, #22d3ee);
             -webkit-background-clip: text;
@@ -106,26 +93,26 @@
 
         .ph p {
             color: var(--muted);
-            font-size: 0.95rem;
+            font-size: 0.92rem;
         }
 
         .card {
             background: var(--card);
-            backdrop-filter: blur(18px);
+            backdrop-filter: blur(16px);
             border: 1px solid var(--bdr);
-            border-radius: 20px;
-            padding: 26px;
+            border-radius: 18px;
+            padding: 22px;
             width: 100%;
-            max-width: 940px;
-            box-shadow: 0 28px 56px rgba(0, 0, 0, .35);
-            margin-bottom: 22px;
+            max-width: 900px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, .35);
+            margin-bottom: 20px;
         }
 
         .stitle {
             font-size: 1rem;
             font-weight: 600;
             color: var(--pl);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -138,22 +125,9 @@
             gap: 12px;
         }
 
-        @media(max-width:600px) {
-            .cfg-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .card {
-                padding: 18px;
-            }
-
-            .dz {
-                padding: 30px 15px;
-            }
-
-            .dz-icon {
-                font-size: 2.2rem;
-            }
+        @media(max-width:640px) {
+            .cfg-grid { grid-template-columns: 1fr; }
+            .card { padding: 16px; }
         }
 
         .fld label {
@@ -170,25 +144,23 @@
             width: 100%;
             background: var(--inp);
             border: 1px solid var(--bdr);
-            border-radius: 9px;
-            padding: 10px 13px;
+            border-radius: 8px;
+            padding: 9px 12px;
             color: var(--txt);
-            font-size: .9rem;
+            font-size: .88rem;
             outline: none;
-            transition: border-color .2s, box-shadow .2s;
+            transition: border-color .2s;
         }
 
         .fld input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, .2);
         }
 
         .cfg-status {
-            margin-top: 12px;
-            padding: 10px 14px;
-            border-radius: 9px;
-            font-size: .85rem;
-            font-weight: 600;
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: .82rem;
             display: none;
         }
 
@@ -206,22 +178,21 @@
             display: block;
         }
 
-        /* Drop zone */
+        /* Dropzone */
         .dz {
-            border: 2px dashed rgba(99, 102, 241, .45);
-            border-radius: 14px;
-            padding: 46px 20px;
+            border: 2px dashed rgba(99, 102, 241, .4);
+            border-radius: 12px;
+            padding: 36px 16px;
             text-align: center;
             cursor: pointer;
-            transition: all .3s;
+            transition: all .2s;
             background: rgba(99, 102, 241, .04);
             position: relative;
         }
 
-        .dz:hover,
-        .dz.over {
+        .dz:hover, .dz.over {
             border-color: var(--pl);
-            background: rgba(99, 102, 241, .11);
+            background: rgba(99, 102, 241, .09);
         }
 
         .dz input[type=file] {
@@ -233,61 +204,37 @@
             height: 100%;
         }
 
-        .dz-icon {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-        }
+        .dz-icon { font-size: 2.4rem; margin-bottom: 8px; }
+        .dz h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; }
+        .dz p { color: var(--muted); font-size: .84rem; }
 
-        .dz h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .dz p {
-            color: var(--muted);
-            font-size: .88rem;
-        }
-
-        .dz-badge {
-            display: inline-block;
-            margin-top: 8px;
-            font-size: 0.78rem;
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        /* Preview grid */
+        /* Preview Grid */
         #pgrid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 18px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 18px;
         }
 
         .pc {
-            background: rgba(10, 15, 35, .82);
+            background: rgba(10, 15, 35, .85);
             border: 1px solid var(--bdr);
-            border-radius: 14px;
+            border-radius: 12px;
             overflow: hidden;
             position: relative;
-            transition: transform .2s, box-shadow .2s;
             display: flex;
             flex-direction: column;
+            transition: transform .2s, box-shadow .2s;
         }
 
         .pc:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, .4);
         }
 
         .pc img {
             width: 100%;
-            height: 320px;
+            height: 280px;
             object-fit: contain;
             background: #050811;
             display: block;
@@ -296,89 +243,70 @@
 
         .pc .qr-status {
             position: absolute;
-            top: 9px;
-            left: 9px;
-            background: rgba(15, 23, 42, 0.88);
+            top: 8px;
+            left: 8px;
+            background: rgba(15, 23, 42, 0.9);
             color: #fff;
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 14px;
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 12px;
             font-weight: 600;
-            backdrop-filter: blur(6px);
+            backdrop-filter: blur(4px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 2;
-            max-width: calc(100% - 60px);
+            max-width: calc(100% - 50px);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
         .pc .qr-status.ok {
-            background: rgba(16, 185, 129, 0.9);
-            color: #ffffff;
+            background: rgba(16, 185, 129, 0.92);
             border-color: #34d399;
-            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
         }
 
         .pc .qr-status.scanning {
-            background: rgba(59, 130, 246, 0.9);
-            color: #ffffff;
+            background: rgba(59, 130, 246, 0.92);
             border-color: #60a5fa;
         }
 
         .pc .qr-status.warn {
-            background: rgba(245, 158, 11, 0.9);
-            color: #ffffff;
+            background: rgba(245, 158, 11, 0.92);
             border-color: #fcd34d;
         }
 
-        .trk-detected-badge {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(34, 211, 238, 0.15));
-            border: 1px solid rgba(99, 102, 241, 0.45);
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 0.8rem;
-            color: #c7d2fe;
-            margin-bottom: 10px;
+        .rm {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(239, 68, 68, .85);
+            border: none;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            color: #fff;
+            font-size: .8rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            transition: background .2s;
+            z-index: 2;
         }
 
-        .trk-detected-badge strong {
-            font-family: 'JetBrains Mono', monospace;
-            color: #a5f3fc;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-auto {
-            display: inline-block;
-            margin-left: 6px;
-            font-size: 0.65rem;
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            padding: 1px 6px;
-            border-radius: 8px;
-            font-weight: 700;
-            text-transform: none;
-            letter-spacing: 0;
-        }
+        .rm:hover { background: var(--err); }
 
         .pc .pb {
-            padding: 14px;
-            flex: 1;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-        }
-
-        .fg {
-            margin-bottom: 11px;
+            gap: 9px;
         }
 
         .fg label {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             font-size: .7rem;
             font-weight: 600;
             color: var(--muted);
@@ -391,23 +319,22 @@
             width: 100%;
             background: var(--inp);
             border: 1px solid var(--bdr);
-            border-radius: 8px;
-            padding: 9px 11px;
+            border-radius: 7px;
+            padding: 8px 10px;
             color: var(--txt);
-            font-size: .88rem;
+            font-size: .86rem;
             outline: none;
-            transition: border-color .2s;
+            font-family: 'JetBrains Mono', monospace;
+            transition: border-color .2s, background .2s;
         }
 
         .fg input:focus {
             border-color: var(--primary);
         }
 
-        .fg input.highlight-auto {
+        .fg input.auto-detected {
             border-color: #10b981;
             background: rgba(16, 185, 129, 0.08);
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 600;
             color: #34d399;
         }
 
@@ -415,67 +342,15 @@
             border-color: var(--err);
         }
 
-        .rm {
-            position: absolute;
-            top: 9px;
-            right: 9px;
-            background: rgba(239, 68, 68, .85);
-            border: none;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            color: #fff;
-            font-size: .85rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background .2s;
-            z-index: 2;
-        }
-
-        .rm:hover {
-            background: var(--err);
-        }
-
-        /* Upload progress */
-        .up-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            background: rgba(10, 15, 35, .6);
-            border: 1px solid var(--bdr);
-            border-radius: 10px;
-            margin-bottom: 8px;
-            font-size: .88rem;
-        }
-
-        .up-item .up-name {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .up-item .up-icon {
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-
-        .up-item.done .up-icon::after { content: '✅'; }
-        .up-item.fail .up-icon::after { content: '❌'; }
-        .up-item.going .up-icon::after { content: '⏳'; }
-
-        /* Buttons */
+        /* Buttons & Actions */
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            padding: 11px 24px;
-            border-radius: 10px;
+            gap: 6px;
+            padding: 9px 20px;
+            border-radius: 8px;
             border: none;
-            font-size: .92rem;
+            font-size: .88rem;
             font-weight: 600;
             cursor: pointer;
             transition: all .2s;
@@ -484,12 +359,12 @@
         .btn-p {
             background: linear-gradient(135deg, #6366f1, #4f46e5);
             color: #fff;
-            box-shadow: 0 4px 18px rgba(99, 102, 241, .4);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, .4);
         }
 
         .btn-p:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 7px 22px rgba(99, 102, 241, .5);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(99, 102, 241, .5);
         }
 
         .btn-p:disabled {
@@ -511,33 +386,60 @@
 
         .abar {
             display: flex;
-            gap: 11px;
+            gap: 10px;
             flex-wrap: wrap;
             align-items: center;
-            margin-top: 22px;
+            margin-top: 18px;
         }
 
         .cbadge {
             margin-left: auto;
             color: var(--muted);
-            font-size: .88rem;
+            font-size: .85rem;
         }
 
-        /* Records */
+        /* Upload log items */
+        .up-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(10, 15, 35, .6);
+            border: 1px solid var(--bdr);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: .85rem;
+        }
+
+        .up-item .up-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .82rem;
+        }
+
+        .up-item .up-icon { flex-shrink: 0; }
+        .up-item.done .up-icon::after { content: '✅'; }
+        .up-item.fail .up-icon::after { content: '❌'; }
+        .up-item.going .up-icon::after { content: '⏳'; }
+
+        /* Records list */
         .rlist {
             display: flex;
             flex-direction: column;
-            gap: 11px;
+            gap: 10px;
         }
 
         .rrow {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             background: rgba(10, 15, 35, .6);
             border: 1px solid var(--bdr);
-            border-radius: 12px;
-            padding: 12px 16px;
+            border-radius: 10px;
+            padding: 10px 14px;
             transition: background .2s;
         }
 
@@ -546,9 +448,9 @@
         }
 
         .rthumb {
-            width: 58px;
-            height: 58px;
-            border-radius: 9px;
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
             object-fit: cover;
             flex-shrink: 0;
             border: 1px solid var(--bdr);
@@ -558,27 +460,29 @@
         .rinfo {
             flex: 1;
             min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
         }
 
         .rinfo-top {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: 4px;
         }
 
         .trk-pill {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            background: rgba(99, 102, 241, 0.2);
+            background: rgba(99, 102, 241, 0.18);
             border: 1px solid rgba(99, 102, 241, 0.4);
             color: #a5b4fc;
-            padding: 3px 9px;
+            padding: 2px 8px;
             border-radius: 6px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 700;
         }
 
@@ -586,18 +490,18 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            background: rgba(34, 211, 238, 0.15);
+            background: rgba(34, 211, 238, 0.14);
             border: 1px solid rgba(34, 211, 238, 0.35);
             color: #67e8f9;
-            padding: 3px 9px;
+            padding: 2px 8px;
             border-radius: 6px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 700;
         }
 
         .rmeta {
-            font-size: .8rem;
+            font-size: .78rem;
             color: var(--muted);
         }
 
@@ -605,62 +509,24 @@
             background: none;
             border: none;
             color: #f87171;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: pointer;
-            padding: 6px 8px;
+            padding: 5px;
             border-radius: 6px;
             transition: background .2s;
         }
 
-        .rdel:hover {
-            background: rgba(239, 68, 68, .15);
-        }
+        .rdel:hover { background: rgba(239, 68, 68, .15); }
 
         .spill {
             background: rgba(99, 102, 241, .1);
             border: 1px solid rgba(99, 102, 241, .25);
-            border-radius: 20px;
-            padding: 5px 16px;
-            font-size: .82rem;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: .8rem;
             color: var(--pl);
             font-weight: 600;
             margin-right: 6px;
-        }
-
-        /* Toast */
-        #toast {
-            position: fixed;
-            bottom: 28px;
-            right: 22px;
-            padding: 13px 20px;
-            border-radius: 11px;
-            font-weight: 600;
-            font-size: .92rem;
-            z-index: 9999;
-            opacity: 0;
-            transform: translateY(18px);
-            transition: opacity .3s, transform .3s;
-            pointer-events: none;
-        }
-
-        #toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        #toast.ok { background: rgba(16, 185, 129, .92); color: #fff; }
-        #toast.er { background: rgba(239, 68, 68, .92); color: #fff; }
-        #toast.in { background: rgba(99, 102, 241, .92); color: #fff; }
-
-        .empty {
-            text-align: center;
-            padding: 38px 20px;
-            color: var(--muted);
-        }
-
-        .empty .ei {
-            font-size: 2.4rem;
-            margin-bottom: 9px;
         }
 
         /* Modal */
@@ -679,77 +545,73 @@
         #imod img {
             max-width: 90vw;
             max-height: 88vh;
-            border-radius: 14px;
-            box-shadow: 0 18px 55px rgba(0, 0, 0, .6);
+            border-radius: 12px;
+            box-shadow: 0 16px 50px rgba(0, 0, 0, .6);
         }
 
         #imod .cm {
             position: fixed;
             top: 16px;
             right: 20px;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: #fff;
             cursor: pointer;
-            background: rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .15);
             border: none;
             border-radius: 50%;
-            width: 42px;
-            height: 42px;
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background .2s;
         }
 
-        #imod .cm:hover {
-            background: rgba(255, 255, 255, .26);
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            padding: 10px 18px;
+            border-radius: 9px;
+            font-weight: 600;
+            font-size: .88rem;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity .3s, transform .3s;
+            pointer-events: none;
         }
 
-        @media(max-width:580px) {
-            #pgrid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
+        #toast.show { opacity: 1; transform: translateY(0); }
+        #toast.ok { background: rgba(16, 185, 129, .95); color: #fff; }
+        #toast.er { background: rgba(239, 68, 68, .95); color: #fff; }
 
-            .abar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .btn {
-                justify-content: center;
-                width: 100%;
-            }
-
-            .cbadge {
-                margin: 10px 0 0 0;
-                text-align: center;
-            }
-
-            .pc img {
-                height: 320px;
-            }
+        .empty {
+            text-align: center;
+            padding: 32px 16px;
+            color: var(--muted);
         }
+
+        .empty .ei { font-size: 2.2rem; margin-bottom: 6px; }
     </style>
 </head>
 
 <body>
     <nav>
-        <a href="prints/index.html">📄 Labels</a>
-        <a href="prints/scanner.html">🔍 Scanner</a>
-        <a href="prints/dispatched.html">📋 Dispatched</a>
+        <a href="index.html">📄 Labels</a>
+        <a href="scanner.html">🔍 Scanner</a>
+        <a href="dispatched.html">📋 Dispatched</a>
         <a href="uploads.html" class="on">📸 Upload Tracking</a>
-        <a href="search.html">🔎 Search Photos</a>
     </nav>
 
     <div class="ph">
         <h1>📸 Tracking Photo Upload</h1>
-        <p>Auto-captures Unique QR Code (<code>TRK-...</code>) & Courier AWB directly from parcel photos</p>
+        <p>Auto-captures Unique QR Code (<code>TRK-...</code>), Courier AWB, and Phone Number from photos</p>
     </div>
 
     <!-- GitHub Config -->
     <div class="card">
-        <div class="stitle">⚙️ GitHub Configuration <span style="font-size:.78rem;color:var(--muted);font-weight:400;">(saved locally)</span></div>
+        <div class="stitle">⚙️ GitHub Configuration <span style="font-size:.76rem;color:var(--muted);font-weight:400;">(stored locally)</span></div>
         <div class="cfg-grid">
             <div class="fld"><label>GitHub Token (PAT)</label><input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx"></div>
             <div class="fld"><label>Repository (owner/repo)</label><input type="text" id="cfg-repo" placeholder="kotasuits/shipment"></div>
@@ -760,18 +622,16 @@
             </div>
         </div>
         <div id="cfg-status" class="cfg-status"></div>
-        <p style="margin-top:12px;font-size:.78rem;color:var(--muted);">⚠️ Token needs <strong>repo</strong> scope. Token is stored securely in this browser (localStorage).</p>
     </div>
 
-    <!-- Upload -->
+    <!-- Upload Photos -->
     <div class="card">
         <div class="stitle">⬆️ Upload Photos</div>
         <div class="dz" id="dz">
             <input type="file" id="fi" accept="image/*" multiple>
-            <div class="dz-icon">🖼️</div>
+            <div class="dz-icon">📦</div>
             <h3>Drop parcel photos here or click to browse</h3>
-            <p>JPG, PNG, WEBP — camera photos & batch uploads supported</p>
-            <span class="dz-badge">⚡ Auto-Captures Unique QR & Courier AWB</span>
+            <p>JPG, PNG, WEBP — Unique QR, Courier AWB & Phone auto-detected</p>
         </div>
         <div id="pgrid"></div>
         <div class="abar" id="abar" style="display:none;">
@@ -779,35 +639,35 @@
             <button class="btn btn-s" onclick="clearPending()">🗑 Clear</button>
             <span class="cbadge" id="pcnt"></span>
         </div>
-        <div id="uplog" style="margin-top:16px;"></div>
+        <div id="uplog" style="margin-top:14px;"></div>
     </div>
 
-    <!-- Records -->
+    <!-- Uploaded Records -->
     <div class="card">
         <div class="stitle">📦 Uploaded Records 
-            <button class="btn btn-s" style="padding:5px 14px;font-size:.8rem;margin-left:auto;" onclick="loadRecords()">↻ Refresh</button>
+            <button class="btn btn-s" style="padding:4px 12px;font-size:.78rem;margin-left:auto;" onclick="loadRecords()">↻ Refresh</button>
         </div>
-        <div id="sbar" style="margin-bottom:14px;"></div>
-        <div class="fld" style="margin-bottom:14px;">
-            <input type="text" id="rec-search" placeholder="🔍 Search uploaded records by Unique QR (TRK-...), Courier AWB, or Phone..." oninput="filterRecords(this.value)">
+        <div id="sbar" style="margin-bottom:12px;"></div>
+        <div class="fld" style="margin-bottom:12px;">
+            <input type="text" id="rec-search" placeholder="🔍 Search records by Unique QR (TRK-...), Courier AWB, or Phone..." oninput="filterRecords(this.value)">
         </div>
         <div class="rlist" id="rlist">
             <div class="empty">
                 <div class="ei">📭</div>
-                <p>No records yet.</p>
+                <p>No records loaded yet.</p>
             </div>
         </div>
     </div>
 
+    <!-- Modal & Toast -->
     <div id="imod">
         <button class="cm" onclick="closeMod()">✕</button>
-        <img id="mimg" src="" alt="">
+        <img id="mimg" src="" alt="Parcel Preview">
     </div>
     <div id="toast"></div>
 
     <script>
         const CFGKEY = 'ghTrackCfg';
-        const RECKEY = 'trackingPhotos';
         const DEFAULT_GH_REPO = "kotasuits/shipment";
         const DEFAULT_GH_BRANCH = "main";
         let pending = [];
@@ -829,9 +689,9 @@
             cfg.token = document.getElementById('cfg-token').value.trim();
             cfg.repo = document.getElementById('cfg-repo').value.trim();
             cfg.branch = document.getElementById('cfg-branch').value.trim() || 'main';
-            if (!cfg.token || !cfg.repo) { toast('Fill in Token and Repo', 'er'); return; }
+            if (!cfg.token || !cfg.repo) { toast('Please fill in Token and Repository', 'er'); return; }
             localStorage.setItem(CFGKEY, JSON.stringify(cfg));
-            toast('Config saved!', 'ok');
+            toast('Configuration saved!', 'ok');
         }
 
         async function testConfig() {
@@ -841,24 +701,19 @@
 
             if (!cfg.repo.includes('/')) {
                 st.className = 'cfg-status bad';
-                st.innerHTML = '❌ <b>Invalid Repo Format</b><br>Please use "owner/repo" (e.g., kotasuits/shipment)';
+                st.innerHTML = '❌ <b>Invalid Repo</b>: Use format "owner/repo" (e.g. kotasuits/shipment)';
                 return;
             }
 
             try {
                 const r = await ghGet(`repos/${cfg.repo}`);
                 st.className = 'cfg-status ok';
-                st.innerHTML = `✅ <b>Connected!</b><br>Repository: ${r.full_name}<br>Visibility: ${r.private ? '🔒 Private' : '🌐 Public'}`;
-                toast('GitHub Connection Successful!', 'ok');
+                st.innerHTML = `✅ Connected to <b>${r.full_name}</b> (${r.private ? 'Private' : 'Public'})`;
+                toast('GitHub Connected!', 'ok');
             } catch (e) {
-                console.error('Connection Failed:', e);
-                let help = 'Check your Token and Repository name.';
-                if (e.message.includes('401')) help = 'Invalid Token. Please check your GitHub PAT.';
-                if (e.message.includes('404')) help = 'Repository not found. Check the owner/repo name.';
-
                 st.className = 'cfg-status bad';
-                st.innerHTML = `❌ <b>Connection Failed</b><br>${e.message}<br><small>${help}</small>`;
-                toast('GitHub Connection Failed', 'er');
+                st.innerHTML = `❌ Connection failed: ${e.message}`;
+                toast('Connection failed', 'er');
             }
         }
 
@@ -893,12 +748,9 @@
             try {
                 const d = await ghGet(`repos/${cfg.repo}/contents/${path}?ref=${cfg.branch}`);
                 return d.sha;
-            } catch {
-                return null;
-            }
+            } catch { return null; }
         }
 
-        // Upload image file to GitHub
         async function uploadImage(filename, dataUrl) {
             const base64 = dataUrl.split(',')[1];
             const path = `images/${filename}`;
@@ -909,15 +761,12 @@
             return `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch}/${path}`;
         }
 
-        // records.json helpers
         async function fetchRecordsJSON() {
             try {
                 const d = await ghGet(`repos/${cfg.repo}/contents/records.json?ref=${cfg.branch}&t=${Date.now()}`);
                 const decoded = atob(d.content.replace(/\n/g, ''));
                 return { records: JSON.parse(decoded), sha: d.sha };
-            } catch {
-                return { records: [], sha: null };
-            }
+            } catch { return { records: [], sha: null }; }
         }
 
         async function pushRecordsJSON(records, sha) {
@@ -927,7 +776,7 @@
             await ghPut(`repos/${cfg.repo}/contents/records.json`, body);
         }
 
-        // ── File Input ──
+        // ── Files Handling ──
         const dz = document.getElementById('dz');
         const fi = document.getElementById('fi');
         fi.addEventListener('change', e => handleFiles(e.target.files));
@@ -944,177 +793,93 @@
             imgs.forEach(f => {
                 const r = new FileReader();
                 r.onload = e => {
-                    const dataUrl = e.target.result;
-                    const pid = uid();
                     const pObj = {
-                        id: pid,
-                        dataUrl,
+                        id: uid(),
+                        dataUrl: e.target.result,
                         file: f,
                         trackingId: '',
                         awb: '',
                         phone: '',
-                        status: '⏳ Scanning codes...'
+                        status: '⏳ Scanning...'
                     };
                     pending.push(pObj);
                     renderGrid();
-
-                    // Start high-accuracy QR & Barcode scan
                     scanParcelPhoto(pObj);
                 };
                 r.readAsDataURL(f);
             });
         }
 
-        /* ============================================================
-           HIGH ACCURACY MULTI-PASS QR & BARCODE DETECTOR
-        ============================================================ */
+        // ── Fast Multi-pass Code Detection ──
         async function scanParcelPhoto(pObj) {
             const img = new Image();
             img.onload = async () => {
                 const detectedCodes = [];
-                const seenText = new Set();
+                const seen = new Set();
 
-                function recordCode(rawVal, type = 'qr') {
-                    if (!rawVal) return;
-                    const str = String(rawVal).trim();
-                    if (!str || seenText.has(str)) return;
-                    seenText.add(str);
-                    detectedCodes.push({ text: str, type: type });
+                function recordCode(txt) {
+                    if (!txt) return;
+                    const str = String(txt).trim();
+                    if (!str || seen.has(str)) return;
+                    seen.add(str);
+                    detectedCodes.push(str);
                 }
 
-                // Helper: create canvas at specified scale
-                function drawToCanvas(maxDim) {
-                    const cvs = document.createElement('canvas');
-                    const ctx = cvs.getContext('2d', { willReadFrequently: true });
-                    let w = img.naturalWidth || img.width;
-                    let h = img.naturalHeight || img.height;
-                    if (maxDim && (w > maxDim || h > maxDim)) {
-                        if (w > h) {
-                            h = Math.round((h * maxDim) / w);
-                            w = maxDim;
-                        } else {
-                            w = Math.round((w * maxDim) / h);
-                            h = maxDim;
-                        }
-                    }
-                    cvs.width = w;
-                    cvs.height = h;
-                    ctx.drawImage(img, 0, 0, w, h);
-                    return { cvs, ctx, w, h };
-                }
-
-                // --- PASS 1: Native BarcodeDetector (captures QR and Barcodes simultaneously) ---
+                // 1. Native BarcodeDetector (fastest, detects QR + 1D Barcodes)
                 if ('BarcodeDetector' in window) {
                     try {
-                        const formats = [
-                            'qr_code', 'code_128', 'code_39', 'code_93',
-                            'ean_13', 'ean_8', 'upc_a', 'upc_e', 'pdf417',
-                            'itf', 'data_matrix'
-                        ];
+                        const formats = ['qr_code', 'code_128', 'code_39', 'code_93', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'pdf417', 'itf'];
                         const detector = new BarcodeDetector({ formats });
                         const barcodes = await detector.detect(img);
                         if (barcodes && barcodes.length) {
-                            barcodes.forEach(b => recordCode(b.rawValue, b.format));
+                            barcodes.forEach(b => recordCode(b.rawValue));
                         }
-                    } catch (e) {
-                        console.warn('Native BarcodeDetector pass error:', e);
-                    }
+                    } catch (e) {}
                 }
 
-                // --- PASS 2: jsQR at High Resolution (Max 2048px) ---
+                // 2. jsQR (High-resolution canvas pass for QR codes)
                 if (typeof jsQR !== 'undefined') {
                     try {
-                        const { cvs, ctx, w, h } = drawToCanvas(2048);
+                        const cvs = document.createElement('canvas');
+                        const ctx = cvs.getContext('2d', { willReadFrequently: true });
+                        let w = img.naturalWidth || img.width;
+                        let h = img.naturalHeight || img.height;
+                        const maxDim = 1800;
+                        if (w > maxDim || h > maxDim) {
+                            if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                            else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                        }
+                        cvs.width = w; cvs.height = h;
+                        ctx.drawImage(img, 0, 0, w, h);
                         const imgData = ctx.getImageData(0, 0, w, h);
                         const qr = jsQR(imgData.data, w, h, { inversionAttempts: 'attemptBoth' });
-                        if (qr && qr.data) {
-                            recordCode(qr.data, 'qr');
-                        }
-                    } catch (e) {
-                        console.warn('jsQR High-res pass error:', e);
-                    }
+                        if (qr && qr.data) recordCode(qr.data);
+                    } catch (e) {}
                 }
 
-                // --- PASS 3: ZXing MultiFormatReader (Superior binarization & skew resistance) ---
+                // 3. ZXing (Fallback for courier 1D barcodes / QR)
                 if (typeof ZXing !== 'undefined') {
                     try {
-                        const hints = new Map();
-                        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-                        const reader = new ZXing.BrowserMultiFormatReader(hints);
-
-                        try {
-                            const zxRes = await reader.decodeFromImageElement(img);
-                            if (zxRes && zxRes.getText()) {
-                                recordCode(zxRes.getText(), 'zxing');
-                            }
-                        } catch (err1) {
-                            try {
-                                const { cvs } = drawToCanvas(1600);
-                                const zxRes2 = await reader.decodeFromCanvas(cvs);
-                                if (zxRes2 && zxRes2.getText()) {
-                                    recordCode(zxRes2.getText(), 'zxing');
-                                }
-                            } catch (err2) {}
-                        }
-                    } catch (e) {
-                        console.warn('ZXing pass error:', e);
-                    }
+                        const reader = new ZXing.BrowserMultiFormatReader();
+                        const zxRes = await reader.decodeFromImageElement(img);
+                        if (zxRes && zxRes.getText()) recordCode(zxRes.getText());
+                    } catch (e) {}
                 }
 
-                // --- PASS 4: Contrast Stretching / Adaptive Grayscale (for low contrast or glare) ---
-                const hasTrk = detectedCodes.some(c => /TRK-[A-Za-z0-9-]+/i.test(c.text));
-                if (!hasTrk && typeof jsQR !== 'undefined') {
-                    try {
-                        const { cvs, ctx, w, h } = drawToCanvas(1200);
-                        const imgData = ctx.getImageData(0, 0, w, h);
-                        const d = imgData.data;
-
-                        let min = 255, max = 0;
-                        for (let i = 0; i < d.length; i += 4) {
-                            const gray = (d[i] * 299 + d[i+1] * 587 + d[i+2] * 114) / 1000;
-                            if (gray < min) min = gray;
-                            if (gray > max) max = gray;
-                        }
-                        const range = (max - min) || 1;
-                        for (let i = 0; i < d.length; i += 4) {
-                            const gray = (d[i] * 299 + d[i+1] * 587 + d[i+2] * 114) / 1000;
-                            const stretched = Math.min(255, Math.max(0, ((gray - min) / range) * 255));
-                            d[i] = stretched;
-                            d[i+1] = stretched;
-                            d[i+2] = stretched;
-                        }
-                        ctx.putImageData(imgData, 0, 0);
-
-                        const qr = jsQR(d, w, h, { inversionAttempts: 'attemptBoth' });
-                        if (qr && qr.data) {
-                            recordCode(qr.data, 'qr');
-                        }
-                    } catch (e) {
-                        console.warn('Pass 4 contrast stretching error:', e);
-                    }
-                }
-
-                // Process collected codes into parcel record
-                processDetectedCodes(detectedCodes, pObj);
+                processCodes(detectedCodes, pObj);
             };
             img.src = pObj.dataUrl;
         }
 
-        /* ============================================================
-           AUTO-CAPTURE: Unique QR Code (TRK-...) & Courier AWB
-        ============================================================ */
-        function processDetectedCodes(codesList, pObj) {
+        function processCodes(codesList, pObj) {
             if (!codesList || !codesList.length) {
                 pObj.status = '⚠️ No codes detected (enter manually)';
                 syncDOM(pObj);
                 return;
             }
 
-            for (const item of codesList) {
-                const text = (item.text || '').trim();
-                if (!text) continue;
-
-                // 1. Check for JSON format
+            for (const text of codesList) {
+                // Check for JSON payload from label maker
                 try {
                     if (text.startsWith('{') && text.endsWith('}')) {
                         const parsed = JSON.parse(text);
@@ -1131,13 +896,13 @@
                     }
                 } catch (e) {}
 
-                // 2. Extract Unique Tracking ID: TRK-YYMMDD-XXXX
+                // Extract Unique QR Code: TRK-YYMMDD-XXXX
                 const trkMatch = text.match(/\b(TRK-[A-Za-z0-9-]+)\b/i);
                 if (trkMatch && !pObj.trackingId) {
                     pObj.trackingId = trkMatch[1].toUpperCase();
                 }
 
-                // 3. Extract Courier AWB (DTDC, Delhivery, Trackon, or standard barcode)
+                // Extract Courier AWB
                 const dtdcMatch = text.match(/\b([DWXU]\d{8,9})\b/i);
                 const delhMatch = text.match(/\b(35\d{10,12}|19\d{10,12})\b/);
                 const trackonMatch = text.match(/\b(5006\d{6,8}|1003\d{6,8})\b/);
@@ -1149,27 +914,26 @@
                 } else if (trackonMatch && !pObj.awb) {
                     pObj.awb = trackonMatch[1];
                 } else if (!text.startsWith('TRK-') && text.length >= 6 && text.length <= 35 && !text.includes('\n') && !pObj.awb) {
-                    // Standard courier barcode / tracking number (not TRK, single line)
                     pObj.awb = text;
                 }
 
-                // 4. Extract Phone Number (from text excluding TRK code)
-                const textForDetails = text.replace(/TRK-[A-Za-z0-9-]+/gi, '');
-                const phMatch = textForDetails.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b([6-9]\d{4}[\s-]?\d{5}|[6-9]\d{9})\b/);
+                // Extract Phone Number (from text excluding TRK match)
+                const textNoTrk = text.replace(/TRK-[A-Za-z0-9-]+/gi, '');
+                const phMatch = textNoTrk.match(/(?:(?:\+|00)?91[\s-]?)?(?:0[\s-]?)?\b([6-9]\d{4}[\s-]?\d{5}|[6-9]\d{9})\b/);
                 if (phMatch && !pObj.phone) {
                     pObj.phone = phMatch[1].replace(/\D/g, '').slice(-10);
                 }
             }
 
-            // Status message
-            if (pObj.trackingId && pObj.awb) {
-                pObj.status = `✅ QR & AWB Captured`;
-            } else if (pObj.trackingId) {
-                pObj.status = `✅ QR: ${pObj.trackingId}`;
-            } else if (pObj.awb) {
-                pObj.status = `✅ AWB: ${pObj.awb}`;
+            const captured = [];
+            if (pObj.trackingId) captured.push('QR');
+            if (pObj.awb) captured.push('AWB');
+            if (pObj.phone) captured.push('Phone');
+
+            if (captured.length > 0) {
+                pObj.status = `✅ Auto-Captured: ${captured.join(' + ')}`;
             } else {
-                pObj.status = `⚠️ Unrecognized code`;
+                pObj.status = '⚠️ No codes detected (enter manually)';
             }
 
             syncDOM(pObj);
@@ -1180,27 +944,22 @@
             const awbInput = document.getElementById(`a-${p.id}`);
             const phInput = document.getElementById(`ph-${p.id}`);
             const st = document.querySelector(`#pc-${p.id} .qr-status`);
-            const trkBadge = document.getElementById(`trk-badge-${p.id}`);
-            const trkTag = document.getElementById(`trk-tag-${p.id}`);
-            const awbTag = document.getElementById(`awb-tag-${p.id}`);
 
             if (trkInput && p.trackingId) {
                 trkInput.value = p.trackingId;
-                trkInput.classList.add('highlight-auto');
+                trkInput.classList.add('auto-detected');
             }
-
             if (awbInput && p.awb) {
                 awbInput.value = p.awb;
-                awbInput.classList.add('highlight-auto');
+                awbInput.classList.add('auto-detected');
             }
-
-            if (phInput && p.phone && !phInput.value) {
+            if (phInput && p.phone) {
                 phInput.value = p.phone;
+                phInput.classList.add('auto-detected');
             }
-
             if (st) {
                 st.textContent = p.status;
-                if (p.trackingId || p.awb || p.status.startsWith('✅')) {
+                if (p.trackingId || p.awb || p.phone || p.status.startsWith('✅')) {
                     st.className = 'qr-status ok';
                 } else if (p.status.startsWith('⏳')) {
                     st.className = 'qr-status scanning';
@@ -1208,20 +967,9 @@
                     st.className = 'qr-status warn';
                 }
             }
-
-            if (trkBadge) {
-                if (p.trackingId) {
-                    trkBadge.style.display = 'flex';
-                    trkBadge.innerHTML = `<span>🏷️ Unique Tracking QR:</span><strong>${p.trackingId}</strong>`;
-                } else {
-                    trkBadge.style.display = 'none';
-                }
-            }
-
-            if (trkTag) trkTag.style.display = p.trackingId ? 'inline-block' : 'none';
-            if (awbTag) awbTag.style.display = p.awb ? 'inline-block' : 'none';
         }
 
+        // ── Render Pending Cards ──
         function renderGrid() {
             const g = document.getElementById('pgrid');
             const ab = document.getElementById('abar');
@@ -1234,36 +982,22 @@
                     const div = document.createElement('div');
                     div.className = 'pc'; div.id = `pc-${p.id}`;
                     div.innerHTML = `
-                        <div class="qr-status ${p.trackingId || p.awb || p.status.startsWith('✅') ? 'ok' : (p.status.startsWith('⏳') ? 'scanning' : 'warn')}">${p.status}</div>
-                        <img id="img-${p.id}" src="${p.dataUrl}" alt="" onclick="openMod('${p.dataUrl}')">
-                        <button class="rm" onclick="rmPending('${p.id}')" title="Remove photo">✕</button>
+                        <div class="qr-status ${p.trackingId || p.awb || p.phone || p.status.startsWith('✅') ? 'ok' : (p.status.startsWith('⏳') ? 'scanning' : 'warn')}">${p.status}</div>
+                        <img src="${p.dataUrl}" alt="Parcel Photo" onclick="openMod('${p.dataUrl}')">
+                        <button class="rm" onclick="rmPending('${p.id}')" title="Remove">✕</button>
                         <div class="pb">
-                            <div id="trk-badge-${p.id}" class="trk-detected-badge" style="display:${p.trackingId ? 'flex' : 'none'};">
-                                <span style="font-size:.76rem;">🏷️ Unique Tracking QR:</span>
-                                <strong>${p.trackingId || ''}</strong>
-                            </div>
-
-                            <!-- Unique QR Code -->
                             <div class="fg">
-                                <label>Unique QR Code <span class="badge-auto" id="trk-tag-${p.id}" style="${p.trackingId ? '' : 'display:none;'}">⚡ Auto-Captured</span></label>
-                                <input type="text" id="trk-${p.id}" placeholder="TRK-YYMMDD-XXXX (from QR code)" value="${p.trackingId || ''}" class="${p.trackingId ? 'highlight-auto' : ''}" oninput="upd('${p.id}','trackingId',this.value)">
+                                <label>Unique QR Code <span style="color:#ef4444;">*</span></label>
+                                <input type="text" id="trk-${p.id}" placeholder="TRK-YYMMDD-XXXX" value="${p.trackingId || ''}" class="${p.trackingId ? 'auto-detected' : ''}" oninput="upd('${p.id}','trackingId',this.value)">
                             </div>
-
-                            <!-- Courier AWB -->
                             <div class="fg">
-                                <label>Courier AWB <span class="badge-auto" id="awb-tag-${p.id}" style="${p.awb ? '' : 'display:none;'}">⚡ Auto-Captured</span></label>
-                                <input type="text" id="a-${p.id}" placeholder="Courier AWB (DTDC, Delhivery, etc.)" value="${p.awb || ''}" class="${p.awb ? 'highlight-auto' : ''}" oninput="upd('${p.id}','awb',this.value)">
+                                <label>Courier AWB <span style="color:#ef4444;">*</span></label>
+                                <input type="text" id="a-${p.id}" placeholder="Courier AWB / Tracking No." value="${p.awb || ''}" class="${p.awb ? 'auto-detected' : ''}" oninput="upd('${p.id}','awb',this.value)">
                             </div>
-
-                            <!-- Phone (Optional) -->
                             <div class="fg">
-                                <label>Phone Number <span style="font-size:0.65rem;color:var(--muted);margin-left:4px;">(Optional)</span></label>
-                                <input type="tel" id="ph-${p.id}" placeholder="10-digit mobile number" maxlength="12" value="${p.phone || ''}" oninput="upd('${p.id}','phone',this.value)">
+                                <label>Phone Number <span style="color:#ef4444;">*</span></label>
+                                <input type="tel" id="ph-${p.id}" placeholder="10-digit mobile number" maxlength="12" value="${p.phone || ''}" class="${p.phone ? 'auto-detected' : ''}" oninput="upd('${p.id}','phone',this.value)">
                             </div>
-
-                            <button class="btn btn-s" style="width:100%;margin-top:4px;padding:7px;font-size:0.8rem;justify-content:center;" onclick="rescanItem('${p.id}')">
-                                🔄 Re-scan Photo
-                            </button>
                         </div>`;
                     g.appendChild(div);
                 } else {
@@ -1272,545 +1006,7 @@
             });
         }
 
-        function rescanItem(id) {
-            const p = pending.find(x => x.id === id);
-            if (!p) return;
-            p.status = '⏳ Re-scanning codes...';
-            syncDOM(p);
-            scanParcelPhoto(p);
-        }
-
-        function upd(id, f, v) {
+        function upd(id, field, val) {
             const p = pending.find(x => x.id === id);
             if (p) {
-                p[f] = v.trim();
-                if (f === 'trackingId' && p[f].startsWith('TRK-')) {
-                    p.trackingId = p[f].toUpperCase();
-                }
-            }
-        }
-
-        function rmPending(id) { 
-            pending = pending.filter(p => p.id !== id); 
-            const el = document.getElementById(`pc-${id}`);
-            if (el) el.remove();
-            const ab = document.getElementById('abar');
-            if (!pending.length) ab.style.display = 'none';
-            document.getElementById('pcnt').textContent = `${pending.length} photo${pending.length > 1 ? 's' : ''} pending`;
-        }
-
-        function clearPending() {
-            pending = [];
-            renderGrid();
-            fi.value = '';
-            document.getElementById('uplog').innerHTML = '';
-        }
-
-        // ── Upload All ──
-        async function uploadAll() {
-            let ok = true;
-            pending.forEach(p => {
-                p.trackingId = (document.getElementById(`trk-${p.id}`)?.value || '').trim();
-                p.awb = (document.getElementById(`a-${p.id}`)?.value || '').trim();
-                p.phone = (document.getElementById(`ph-${p.id}`)?.value || '').trim();
-
-                ['trk', 'a', 'ph'].forEach(pre => document.getElementById(`${pre}-${p.id}`)?.classList.remove('err'));
-
-                // Need at least a Unique Tracking ID OR Courier AWB OR Phone
-                if (!p.trackingId && !p.awb && !p.phone) {
-                    document.getElementById(`trk-${p.id}`)?.classList.add('err');
-                    document.getElementById(`a-${p.id}`)?.classList.add('err');
-                    ok = false;
-                }
-            });
-
-            if (!ok) {
-                toast('Please provide at least a Unique QR Code or Courier AWB', 'er');
-                return;
-            }
-            if (!cfg.token || !cfg.repo) {
-                toast('Save GitHub config first!', 'er');
-                return;
-            }
-
-            const btn = document.getElementById('ubtn');
-            btn.disabled = true; btn.textContent = '⏳ Uploading…';
-            const log = document.getElementById('uplog');
-            log.innerHTML = '<div style="font-size:.85rem;color:var(--muted);margin-bottom:8px;">Upload progress:</div>';
-
-            const newRecords = [];
-            for (let p of pending) {
-                const item = document.createElement('div');
-                item.className = 'up-item going';
-                const labelTitle = p.trackingId || p.awb || p.file?.name || 'Parcel Photo';
-                item.innerHTML = `<span class="up-icon"></span><span class="up-name">${labelTitle}</span><span style="color:var(--muted);font-size:.8rem;">Saving to GitHub…</span>`;
-                log.appendChild(item);
-
-                try {
-                    const ts = new Date().toISOString();
-                    const cleanTrk = (p.trackingId || '').replace(/[^A-Za-z0-9_-]/g, '');
-                    const cleanAwb = (p.awb || '').replace(/[^A-Za-z0-9_-]/g, '');
-                    const cleanPh = (p.phone || '').replace(/\D/g, '');
-                    const ph5 = cleanPh.slice(-5) || '00000';
-                    const prefixId = cleanTrk || cleanAwb || `PH${ph5}` || 'PARCEL';
-                    const fname = `${prefixId}_${ph5}_${Date.now()}.jpg`;
-
-                    const url = await uploadImage(fname, p.dataUrl);
-
-                    const rec = {
-                        id: p.id,
-                        trackingId: p.trackingId || '',
-                        awb: p.awb || p.trackingId || '',
-                        phone: p.phone || '',
-                        photoUrl: url,
-                        photoPath: `images/${fname}`,
-                        uploadedAt: ts
-                    };
-                    newRecords.push(rec);
-
-                    item.className = 'up-item done';
-                    item.querySelector('span:last-child').textContent = 'Photo Uploaded ✅';
-                } catch (e) {
-                    item.className = 'up-item fail';
-                    item.querySelector('span:last-child').textContent = 'Failed: ' + e.message;
-                }
-            }
-
-            if (newRecords.length > 0) {
-                try {
-                    const statusItem = document.createElement('div');
-                    statusItem.className = 'up-item going';
-                    statusItem.innerHTML = `<span class="up-icon"></span><span class="up-name">Updating records.json</span>`;
-                    log.appendChild(statusItem);
-
-                    const { records, sha } = await fetchRecordsJSON();
-                    const updatedRecords = [...records, ...newRecords];
-                    await pushRecordsJSON(updatedRecords, sha);
-
-                    statusItem.className = 'up-item done';
-                    statusItem.innerHTML = `<span class="up-icon"></span><span class="up-name">Database updated! ✅</span>`;
-                } catch (e) {
-                    toast('Failed to update records.json: ' + e.message, 'er');
-                }
-            }
-
-            btn.disabled = false; btn.textContent = '☁️ Upload to GitHub';
-            toast('Upload complete!', 'ok');
-            clearPending();
-            loadRecords();
-        }
-
-        // ── Load & Display Records ──
-        async function loadRecords() {
-            const list = document.getElementById('rlist');
-            list.innerHTML = '<div class="empty"><div class="ei">⏳</div><p>Loading records from GitHub…</p></div>';
-            if (!cfg.repo) {
-                list.innerHTML = '<div class="empty"><div class="ei">⚙️</div><p>Configure GitHub Repository first.</p></div>';
-                return;
-            }
-
-            try {
-                let records = [];
-                if (cfg.token) {
-                    const { records: r } = await fetchRecordsJSON();
-                    records = r;
-                } else {
-                    const res = await fetch(`https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch || 'main'}/records.json?v=${Date.now()}`);
-                    if (!res.ok) throw new Error("Could not load records publicly.");
-                    records = await res.json();
-                }
-                cachedRecords = records || [];
-                renderRecords(cachedRecords);
-            } catch (e) {
-                list.innerHTML = `<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`;
-            }
-        }
-
-        function filterRecords(query) {
-            const q = (query || '').toLowerCase().trim();
-            if (!q) {
-                renderRecords(cachedRecords);
-                return;
-            }
-            const filtered = cachedRecords.filter(r => {
-                const trk = (r.trackingId || '').toLowerCase();
-                const awb = (r.awb || '').toLowerCase();
-                const ph = (r.phone || '').toLowerCase();
-                return trk.includes(q) || awb.includes(q) || ph.includes(q);
-            });
-            renderRecords(filtered);
-        }
-
-        function renderRecords(records) {
-            const list = document.getElementById('rlist');
-            const sb = document.getElementById('sbar');
-            sb.innerHTML = `<span class="spill">📦 ${records.length} Record${records.length !== 1 ? 's' : ''}</span>${records.length ? `<span class="spill">📅 Latest: ${fmtDate(records[records.length - 1].uploadedAt)}</span>` : ''}`;
-            
-            if (!records.length) {
-                list.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No records found.</p></div>';
-                return;
-            }
-
-            const rev = [...records].reverse();
-            list.innerHTML = rev.map(r => {
-                const trkCode = r.trackingId || '';
-                const awbCode = r.awb || '';
-                return `
-                <div class="rrow">
-                    <img class="rthumb" src="${r.photoUrl}" alt="Photo" onclick="openMod('${r.photoUrl}')">
-                    <div class="rinfo">
-                        <div class="rinfo-top">
-                            ${trkCode ? `<span class="trk-pill">🏷️ ${trkCode}</span>` : ''}
-                            ${awbCode && awbCode !== trkCode ? `<span class="awb-pill">🚚 AWB: ${awbCode}</span>` : ''}
-                            ${!trkCode && awbCode ? `<span class="awb-pill">🚚 ${awbCode}</span>` : ''}
-                        </div>
-                        <div class="rmeta">
-                            ${r.phone ? `📞 ${r.phone} &nbsp;|&nbsp; ` : ''}
-                            🕐 ${fmtDate(r.uploadedAt)}
-                        </div>
-                    </div>
-                    <button class="rdel" onclick="deleteRecord('${r.id}','${r.photoPath || ''}')" title="Delete Record">🗑</button>
-                </div>`;
-            }).join('');
-        }
-
-        async function deleteRecord(id, photoPath) {
-            if (!confirm('Delete this record and photo permanently from GitHub?')) return;
-            try {
-                const { records, sha } = await fetchRecordsJSON();
-                const updated = records.filter(r => r.id !== id);
-                await pushRecordsJSON(updated, sha);
-
-                if (photoPath) {
-                    const fsha = await getFileSHA(photoPath);
-                    if (fsha) await ghDel(`repos/${cfg.repo}/contents/${photoPath}`, { message: 'Delete photo', sha: fsha, branch: cfg.branch });
-                }
-                toast('Record deleted', 'in');
-                loadRecords();
-            } catch (e) {
-                toast('Delete failed: ' + e.message, 'er');
-            }
-        }
-
-        function fmtDate(iso) {
-            if (!iso) return 'N/A';
-            const d = new Date(iso); if (isNaN(d)) return iso;
-            const p = n => String(n).padStart(2, '0');
-            return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
-        }
-
-        function openMod(url) {
-            document.getElementById('mimg').src = url;
-            document.getElementById('imod').classList.add('open');
-        }
-
-        function closeMod() {
-            document.getElementById('imod').classList.remove('open');
-            document.getElementById('mimg').src = '';
-        }
-
-        document.getElementById('imod').addEventListener('click', e => {
-            if (e.target === document.getElementById('imod')) closeMod();
-        });
-
-        function toast(msg, type = 'ok') {
-            const t = document.getElementById('toast');
-            t.className = `${type} show`; t.textContent = msg;
-            setTimeout(() => t.className = '', 3400);
-        }
-
-        loadConfig();
-        loadRecords();
-    </script>
-</body>
-
-</html>        body {
-            background: var(--bg);
-            background-image: radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, .18), transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(34, 211, 238, .12), transparent 50%);
-            color: var(--txt);
-            min-height: 100vh;
-            padding: 28px 16px 60px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        nav {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 26px;
-            width: 100%;
-            max-width: 940px;
-        }
-
-        nav a {
-            color: var(--pl);
-            text-decoration: none;
-            font-weight: 600;
-            padding: 7px 16px;
-            border: 1.5px solid rgba(99, 102, 241, .4);
-            border-radius: 8px;
-            background: rgba(99, 102, 241, .08);
-            transition: all .2s;
-            font-size: .88rem;
-        }
-
-        nav a:hover,
-        nav a.on {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        @media(max-width: 600px) {
-            nav {
-                gap: 8px;
-                padding: 0 5px;
-            }
-
-            nav a {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-                flex: 1 1 calc(50% - 10px);
-                text-align: center;
-            }
-        }
-
-        .ph {
-            text-align: center;
-            margin-bottom: 32px;
-            width: 100%;
-            max-width: 940px;
-        }
-
-        .ph h1 {
-            font-size: clamp(1.6rem, 4vw, 2.6rem);
-            font-weight: 700;
-            background: linear-gradient(135deg, #818cf8, #22d3ee);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 6px;
-        }
-
-        .ph p {
-            color: var(--muted);
-            font-size: 0.95rem;
-        }
-
-        .card {
-            background: var(--card);
-            backdrop-filter: blur(18px);
-            border: 1px solid var(--bdr);
-            border-radius: 20px;
-            padding: 26px;
-            width: 100%;
-            max-width: 940px;
-            box-shadow: 0 28px 56px rgba(0, 0, 0, .35);
-            margin-bottom: 22px;
-        }
-
-        .stitle {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--pl);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* GitHub Config */
-        .cfg-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        @media(max-width:600px) {
-            .cfg-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .card {
-                padding: 18px;
-            }
-
-            .dz {
-                padding: 30px 15px;
-            }
-
-            .dz-icon {
-                font-size: 2.2rem;
-            }
-        }
-
-        .fld label {
-            display: block;
-            font-size: .72rem;
-            font-weight: 600;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            margin-bottom: 5px;
-        }
-
-        .fld input {
-            width: 100%;
-            background: var(--inp);
-            border: 1px solid var(--bdr);
-            border-radius: 9px;
-            padding: 10px 13px;
-            color: var(--txt);
-            font-size: .9rem;
-            outline: none;
-            transition: border-color .2s, box-shadow .2s;
-        }
-
-        .fld input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, .2);
-        }
-
-        .cfg-status {
-            margin-top: 12px;
-            padding: 10px 14px;
-            border-radius: 9px;
-            font-size: .85rem;
-            font-weight: 600;
-            display: none;
-        }
-
-        .cfg-status.ok {
-            background: rgba(16, 185, 129, .15);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, .3);
-            display: block;
-        }
-
-        .cfg-status.bad {
-            background: rgba(239, 68, 68, .12);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, .3);
-            display: block;
-        }
-
-        /* Drop zone */
-        .dz {
-            border: 2px dashed rgba(99, 102, 241, .45);
-            border-radius: 14px;
-            padding: 46px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all .3s;
-            background: rgba(99, 102, 241, .04);
-            position: relative;
-        }
-
-        .dz:hover,
-        .dz.over {
-            border-color: var(--pl);
-            background: rgba(99, 102, 241, .11);
-        }
-
-        .dz input[type=file] {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-            width: 100%;
-            height: 100%;
-        }
-
-        .dz-icon {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-        }
-
-        .dz h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .dz p {
-            color: var(--muted);
-            font-size: .88rem;
-        }
-
-        .dz-badge {
-            display: inline-block;
-            margin-top: 8px;
-            font-size: 0.78rem;
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        /* Preview grid */
-        #pgrid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 18px;
-            margin-top: 20px;
-        }
-
-        .pc {
-            background: rgba(10, 15, 35, .82);
-            border: 1px solid var(--bdr);
-            border-radius: 14px;
-            overflow: hidden;
-            position: relative;
-            transition: transform .2s, box-shadow .2s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .pc:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
-        }
-
-        .pc img {
-            width: 100%;
-            height: 320px;
-            object-fit: contain;
-            background: #050811;
-            display: block;
-            cursor: pointer;
-        }
-
-        .pc .qr-status {
-            position: absolute;
-            top: 9px;
-            left: 9px;
-            background: rgba(15, 23, 42, 0.88);
-            color: #fff;
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 14px;
-            font-weight: 600;
-            backdrop-filter: blur(6px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 2;
-            max-width: calc(100% - 60px);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .pc .qr-status.ok {
-            background: rgba(16, 185, 129, 0.9);
-            color: #ffffff;
-            border-color: #34d399;
-            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
-        }
-
-        .pc .qr-status.scanning {
-            background: rgba(59, 130, 246, 0.9);
-            color: #ffffff;
-            border-color:
+                p[field]
