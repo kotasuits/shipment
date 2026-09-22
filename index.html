@@ -198,6 +198,26 @@
             color: var(--muted);
         }
 
+        /* NEW BADGE FOR PARCELS WITHIN 15 DAYS */
+        .new-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+            z-index: 5;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .vo {
             position: absolute;
             inset: 0;
@@ -273,6 +293,13 @@
             .rstats {
                 font-size: 0.8rem;
             }
+            #imod .cm {
+                top: 12px;
+                right: 12px;
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
+            }
         }
 
         .sb h3 {
@@ -292,14 +319,15 @@
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, .92);
-            z-index: 10000;
+            z-index: 100000;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             flex-direction: column;
             gap: 18px;
-            padding: 20px;
+            padding: 30px 16px 60px;
             overflow-y: auto;
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         #imod.open {
@@ -381,28 +409,30 @@
             margin-bottom: 10px;
         }
 
+        /* FIXED ALWAYS-VISIBLE CLOSE BUTTON */
         #imod .cm {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 10005;
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 100050;
             font-size: 1.5rem;
+            font-weight: bold;
             color: #fff;
             cursor: pointer;
             background: #ef4444;
-            border: 2px solid #fff;
+            border: 2.5px solid #fff;
             border-radius: 50%;
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(239, 68, 68, 0.35);
         }
 
         #imod .cm:hover {
-            background: #ef4444;
+            background: #dc2626;
             transform: scale(1.1);
         }
 
@@ -485,10 +515,12 @@
             <div id="rgrid"></div>
         </div>
     </div>
+
+    <!-- Modal -->
     <div id="imod">
+        <button class="cm" onclick="closeMod()" title="Close (ESC)">✕</button>
         <div class="mw">
-            <button class="cm" onclick="closeMod()" title="Close">✕</button>
-            <img id="mimg" src="" alt="">
+            <img id="mimg" src="" alt="Parcel Photo">
         </div>
 
         <!-- Tracking Area -->
@@ -558,11 +590,32 @@
             if (!q) return text;
             return String(text).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'), '<mark>$1</mark>');
         }
+
         function fmtDate(iso) {
             if (!iso) return '';
             const d = new Date(iso); if (isNaN(d)) return iso;
             const p = n => String(n).padStart(2, '0');
             return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+        }
+
+        // Helper to extract timestamp & check 15 days
+        function getRecordTimestamp(r) {
+            if (r.uploadedAt) {
+                const t = new Date(r.uploadedAt).getTime();
+                if (!isNaN(t)) return t;
+            }
+            if (r.photoUrl || r.photoPath) {
+                const m = (r.photoPath || r.photoUrl).match(/_(\d{10,13})\.(?:jpg|jpeg|png|webp)/i);
+                if (m) return parseInt(m[1]);
+            }
+            return 0;
+        }
+
+        function isWithin15Days(r) {
+            const t = getRecordTimestamp(r);
+            if (!t) return false;
+            const diffDays = (Date.now() - t) / (1000 * 60 * 60 * 24);
+            return diffDays >= 0 && diffDays <= 15;
         }
 
         function doSearch() {
@@ -577,6 +630,13 @@
                 String(r.phone || '').endsWith(q)
             );
 
+            // Sort matched records: LATEST FIRST on top
+            matched.sort((a, b) => {
+                const tA = getRecordTimestamp(a);
+                const tB = getRecordTimestamp(b);
+                return tB - tA;
+            });
+
             ['init-st', 'empty-st', 'norec-st', 'load-st'].forEach(s => document.getElementById(s).style.display = 'none');
 
             if (!matched.length) { document.getElementById('empty-st').style.display = 'block'; document.getElementById('rstats').style.display = 'none'; document.getElementById('rgrid').innerHTML = ''; return; }
@@ -586,13 +646,16 @@
             document.getElementById('rbadge').textContent = matched.length;
 
             document.getElementById('rgrid').innerHTML = matched.map(r => {
+                const isNew = isWithin15Days(r);
                 return `
     <div class="rc" onclick="openMod('${r.id}')">
+      ${isNew ? `<div class="new-badge">✨ NEW</div>` : ''}
       <div class="vo"><span>🔍 View Photo</span></div>
       <img src="${r.photoUrl}" alt="parcel photo" loading="lazy">
       <div class="ci">
         <div class="cn">👤 ${hl(r.name, q)}</div>
         <div class="ml">
+          ${isNew ? `<span class="chip" style="background:rgba(16,185,129,0.18); border-color:rgba(16,185,129,0.4); color:#34d399; font-weight:700;">✨ NEW</span>` : ''}
           <span class="chip">📍 ${hl(r.pincode, q)}</span>
           <span class="chip ph">📞 ${hl(r.phone, q)}</span>
           ${r.awb ? `<span class="chip" style="background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2); color:#34d399;">🚚 ${hl(r.awb, q)}</span>` : ''}
@@ -606,9 +669,11 @@
         function openMod(id) {
             const r = allRecords.find(x => x.id === id);
             if (!r) return;
+            const isNew = isWithin15Days(r);
             document.getElementById('mimg').src = r.photoUrl;
             document.getElementById('mname').textContent = `👤 ${r.name}`;
             document.getElementById('mmeta').innerHTML = `
+        ${isNew ? `<span class="chip" style="background:rgba(16,185,129,0.2); border-color:#10b981; color:#34d399; font-weight:700;">✨ NEW PARCEL</span>` : ''}
         <span class="chip">📍 ${r.pincode}</span>
         <span class="chip ph">📞 ${r.phone}</span>
         ${r.awb ? `<span class="chip" style="background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2); color:#34d399;">🚚 ${r.awb}</span>` : ''}
@@ -645,7 +710,11 @@
 
         function closeMod() { document.getElementById('imod').classList.remove('open'); document.getElementById('mimg').src = ''; }
 
-        document.getElementById('imod').addEventListener('click', e => { if (e.target === document.getElementById('imod')) closeMod(); });
+        document.getElementById('imod').addEventListener('click', e => { 
+            if (e.target === document.getElementById('imod') || e.target.classList.contains('mw')) {
+                closeMod(); 
+            }
+        });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMod(); } });
 
         // Init
