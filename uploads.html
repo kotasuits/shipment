@@ -529,6 +529,138 @@
             margin-right: 6px;
         }
 
+        /* FILTER CHIPS & CONTROLS */
+        .controls-toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .quick-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-chip {
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--muted);
+            border: 1px solid var(--bdr);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .filter-chip:hover {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .filter-chip.active {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .date-picker-wrap {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            background: rgba(15, 23, 42, 0.5);
+            padding: 6px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--bdr);
+        }
+
+        .date-picker-wrap.show {
+            display: flex;
+        }
+
+        .date-input {
+            background: #1e293b;
+            color: white;
+            border: 1px solid var(--bdr);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .date-input:focus {
+            border-color: var(--primary);
+        }
+
+        .date-apply-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .date-apply-btn:hover {
+            background: var(--pl);
+        }
+
+        .record-counter {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .record-counter strong {
+            color: #38bdf8;
+        }
+
+        .load-more-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: 18px;
+        }
+
+        .load-more-btn {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            padding: 9px 24px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .load-more-btn:hover {
+            background: rgba(99, 102, 241, 0.3);
+            border-color: rgba(99, 102, 241, 0.7);
+            color: white;
+            transform: translateY(-1px);
+        }
+
         /* Modal */
         #imod {
             display: none;
@@ -648,15 +780,44 @@
         <div class="stitle">📦 Uploaded Records 
             <button class="btn btn-s" style="padding:4px 12px;font-size:.78rem;margin-left:auto;" onclick="loadRecords()">↻ Refresh</button>
         </div>
+
+        <!-- FILTER & CONTROL BAR -->
+        <div class="controls-toolbar">
+            <div class="filter-row">
+                <div class="quick-filters">
+                    <button class="filter-chip active" id="chip-7days" onclick="setDateFilter('7days')">⚡ Last 7 Days</button>
+                    <button class="filter-chip" id="chip-today" onclick="setDateFilter('today')">📅 Today</button>
+                    <button class="filter-chip" id="chip-30days" onclick="setDateFilter('30days')">🗓 Last 30 Days</button>
+                    <button class="filter-chip" id="chip-custom" onclick="setDateFilter('custom')">📆 Custom Range</button>
+                    <button class="filter-chip" id="chip-all" onclick="setDateFilter('all')">🌐 All Records</button>
+                </div>
+                <div class="record-counter" id="recordCounter">Showing <strong>0</strong> records</div>
+            </div>
+
+            <!-- Custom Date Range Picker -->
+            <div class="date-picker-wrap" id="customDateWrap">
+                <label style="font-size:0.82rem;color:var(--muted);">From:</label>
+                <input type="date" id="startDate" class="date-input">
+                <label style="font-size:0.82rem;color:var(--muted);">To:</label>
+                <input type="date" id="endDate" class="date-input">
+                <button class="date-apply-btn" onclick="applyCustomDateRange()">Apply</button>
+            </div>
+        </div>
+
         <div id="sbar" style="margin-bottom:12px;"></div>
         <div class="fld" style="margin-bottom:12px;">
-            <input type="text" id="rec-search" placeholder="🔍 Search records by Name, Phone, AWB, Pincode, or Unique QR..." oninput="filterRecords(this.value)">
+            <input type="text" id="rec-search" placeholder="🔍 Search records by Name, Phone, AWB, Pincode, or Unique QR..." oninput="handleSearch()">
         </div>
         <div class="rlist" id="rlist">
             <div class="empty">
                 <div class="ei">📭</div>
                 <p>No records loaded yet.</p>
             </div>
+        </div>
+
+        <!-- Load more button -->
+        <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+            <button class="load-more-btn" onclick="renderMoreRecords()">Load More Records</button>
         </div>
     </div>
 
@@ -666,8 +827,7 @@
         <img id="mimg" src="" alt="Parcel Preview">
     </div>
     <div id="toast"></div>
-
-    <script>
+        <script>
         const CFGKEY = 'ghTrackCfg';
         const DEFAULT_GH_REPO = "kotasuits/shipment";
         const DEFAULT_GH_BRANCH = "main";
@@ -1206,6 +1366,47 @@
             loadRecords();
         }
 
+        // ── Date Filters & Pagination State ──
+        let activeDateFilter = '7days';
+        let customStart = null;
+        let customEnd = null;
+        let filteredRecords = [];
+        let renderedRecordCount = 0;
+        const RECORD_PAGE_SIZE = 40;
+
+        function setDateFilter(filterType) {
+            activeDateFilter = filterType;
+            document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+            const activeChip = document.getElementById('chip-' + filterType);
+            if (activeChip) activeChip.classList.add('active');
+
+            const customWrap = document.getElementById('customDateWrap');
+            if (filterType === 'custom') {
+                customWrap.classList.add('show');
+            } else {
+                customWrap.classList.remove('show');
+                applyRecordFilters();
+            }
+        }
+
+        function applyCustomDateRange() {
+            const startVal = document.getElementById('startDate').value;
+            const endVal = document.getElementById('endDate').value;
+            if (!startVal || !endVal) {
+                toast('Please pick both From and To dates', 'er');
+                return;
+            }
+            customStart = new Date(startVal + 'T00:00:00');
+            customEnd = new Date(endVal + 'T23:59:59');
+            applyRecordFilters();
+        }
+
+        let recSearchTimer = null;
+        function handleSearch() {
+            clearTimeout(recSearchTimer);
+            recSearchTimer = setTimeout(applyRecordFilters, 150);
+        }
+
         // ── Load & Display Records ──
         async function loadRecords() {
             const list = document.getElementById('rlist');
@@ -1226,49 +1427,110 @@
                     records = await res.json();
                 }
                 cachedRecords = records || [];
-                renderRecords(cachedRecords);
+                applyRecordFilters();
             } catch (e) {
                 list.innerHTML = `<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`;
             }
         }
 
-        function filterRecords(query) {
-            const q = (query || '').toLowerCase().trim();
-            if (!q) {
-                renderRecords(cachedRecords);
+        function applyRecordFilters() {
+            if (!cachedRecords) return;
+
+            const now = new Date();
+            const filterType = activeDateFilter;
+            const q = (document.getElementById('rec-search').value || '').toLowerCase().trim();
+
+            let cutoffStart = null;
+            let cutoffEnd = null;
+
+            if (filterType === 'today') {
+                cutoffStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+                cutoffEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            } else if (filterType === '7days') {
+                cutoffStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                cutoffStart.setHours(0, 0, 0, 0);
+            } else if (filterType === '30days') {
+                cutoffStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                cutoffStart.setHours(0, 0, 0, 0);
+            } else if (filterType === 'custom' && customStart && customEnd) {
+                cutoffStart = customStart;
+                cutoffEnd = customEnd;
+            }
+
+            // Filter in reverse order (newest first)
+            const results = [];
+            for (let i = cachedRecords.length - 1; i >= 0; i--) {
+                const r = cachedRecords[i];
+
+                // Date filtering
+                if (cutoffStart && r.uploadedAt) {
+                    const rDate = new Date(r.uploadedAt);
+                    if (!isNaN(rDate.getTime())) {
+                        if (rDate < cutoffStart) continue;
+                        if (cutoffEnd && rDate > cutoffEnd) continue;
+                    }
+                }
+
+                // Query search
+                if (q) {
+                    const trk = (r.trackingId || '').toLowerCase();
+                    const awb = (r.awb || '').toLowerCase();
+                    const ph = (r.phone || '').toLowerCase();
+                    const nm = (r.name || '').toLowerCase();
+                    const pin = (r.pincode || '').toLowerCase();
+                    if (!trk.includes(q) && !awb.includes(q) && !ph.includes(q) && !nm.includes(q) && !pin.includes(q)) {
+                        continue;
+                    }
+                }
+
+                results.push(r);
+            }
+
+            filteredRecords = results;
+            renderedRecordCount = 0;
+            document.getElementById('rlist').innerHTML = '';
+
+            // Update stats badge and counter
+            const counter = document.getElementById('recordCounter');
+            if (counter) {
+                counter.innerHTML = `Showing <strong>${results.length}</strong> of ${cachedRecords.length} records`;
+            }
+
+            const sb = document.getElementById('sbar');
+            if (sb) {
+                sb.innerHTML = `<span class="spill">📦 ${results.length} Record${results.length !== 1 ? 's' : ''}</span>` +
+                    (results.length && results[0].uploadedAt ? `<span class="spill">📅 Latest: ${fmtDate(results[0].uploadedAt)}</span>` : '');
+            }
+
+            const loadMoreWrap = document.getElementById('loadMoreWrap');
+            if (!results.length) {
+                document.getElementById('rlist').innerHTML = '<div class="empty"><div class="ei">📭</div><p>No records found for the selected filter.</p></div>';
+                if (loadMoreWrap) loadMoreWrap.style.display = 'none';
                 return;
             }
-            const filtered = cachedRecords.filter(r => {
-                const trk = (r.trackingId || '').toLowerCase();
-                const awb = (r.awb || '').toLowerCase();
-                const ph = (r.phone || '').toLowerCase();
-                const nm = (r.name || '').toLowerCase();
-                const pin = (r.pincode || '').toLowerCase();
-                return trk.includes(q) || awb.includes(q) || ph.includes(q) || nm.includes(q) || pin.includes(q);
-            });
-            renderRecords(filtered);
+
+            renderMoreRecords();
         }
 
-        function renderRecords(records) {
+        function renderMoreRecords() {
             const list = document.getElementById('rlist');
-            const sb = document.getElementById('sbar');
-            sb.innerHTML = `<span class="spill">📦 ${records.length} Record${records.length !== 1 ? 's' : ''}</span>${records.length ? `<span class="spill">📅 Latest: ${fmtDate(records[records.length - 1].uploadedAt)}</span>` : ''}`;
+            const data = filteredRecords;
+            const start = renderedRecordCount;
+            const end = Math.min(start + RECORD_PAGE_SIZE, data.length);
 
-            if (!records.length) {
-                list.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No records found.</p></div>';
-                return;
-            }
+            const fragment = document.createDocumentFragment();
 
-            const rev = [...records].reverse();
-            list.innerHTML = rev.map(r => {
+            for (let i = start; i < end; i++) {
+                const r = data[i];
                 const trkCode = r.trackingId || '';
                 const awbCode = r.awb || '';
                 const nameStr = r.name || '';
                 const pinStr = r.pincode || '';
                 const phStr = r.phone || '';
 
-                return `
-                <div class="rrow">
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'rrow';
+                rowDiv.innerHTML = `
                     <img class="rthumb" src="${r.photoUrl}" alt="${nameStr || trkCode || 'Photo'}" onclick="openMod('${r.photoUrl}')">
                     <div class="rinfo">
                         <div class="rinfo-top">
@@ -1283,8 +1545,22 @@
                         </div>
                     </div>
                     <button class="rdel" onclick="deleteRecord('${r.id}','${r.photoPath || ''}')" title="Delete">🗑</button>
-                </div>`;
-            }).join('');
+                `;
+                fragment.appendChild(rowDiv);
+            }
+
+            list.appendChild(fragment);
+            renderedRecordCount = end;
+
+            const loadMoreWrap = document.getElementById('loadMoreWrap');
+            if (loadMoreWrap) {
+                if (renderedRecordCount < data.length) {
+                    loadMoreWrap.style.display = 'flex';
+                    loadMoreWrap.querySelector('button').textContent = `Load More (${data.length - renderedRecordCount} remaining)`;
+                } else {
+                    loadMoreWrap.style.display = 'none';
+                }
+            }
         }
 
         async function deleteRecord(id, photoPath) {
@@ -1332,6 +1608,25 @@
             setTimeout(() => t.className = '', 3200);
         }
 
+        function initDatePickers() {
+            const today = new Date();
+            const past7 = new Date();
+            past7.setDate(today.getDate() - 7);
+            const p = d => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+            const sEl = document.getElementById('startDate');
+            const eEl = document.getElementById('endDate');
+            if (sEl && eEl) {
+                sEl.value = p(past7);
+                eEl.value = p(today);
+            }
+        }
+
+        initDatePickers();
         loadConfig();
         loadRecords();
     </script>
